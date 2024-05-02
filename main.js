@@ -1,5 +1,3 @@
-import './style.css'
-
 import * as THREE from 'three';
 
 function main() {
@@ -21,13 +19,31 @@ function main() {
   const boxDepth = 1;
   const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
 
-  const material = new THREE.MeshBasicMaterial({color: 0x44aa88});
+  const material = new THREE.MeshPhongMaterial({color: 0x44aa88});
 
   const cube = new THREE.Mesh(geometry, material);
 
   scene.add(cube);
 
-  renderer.render(scene, camera)
+  const color = 0xFFFFFF;
+  const intensity = 3;
+  const light = new THREE.DirectionalLight(color, intensity);
+  light.position.set(-1, 2, 4);
+  scene.add(light);
+
+  // Animation function that rotates cube
+  function render(time) {
+    const seconds = time / 1000;
+
+    cube.rotation.y = seconds;
+    cube.rotation.x = seconds;
+    renderer.render(scene, camera);
+
+    requestAnimationFrame(render)
+  }
+
+  requestAnimationFrame(render)
+
 }
 
 main()
