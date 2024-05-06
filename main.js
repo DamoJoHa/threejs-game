@@ -31,9 +31,27 @@ function main() {
   light.position.set(-1, 2, 4);
   scene.add(light);
 
+
+  function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+      renderer.setSize(width, height, false);
+    }
+    return needResize;
+  }
+
   // Animation function that rotates cube
   function render(time) {
     const seconds = time / 1000;
+
+    if (resizeRendererToDisplaySize(renderer)) {
+      const canvas = renderer.domElement;
+      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      camera.updateProjectionMatrix();
+    }
 
     cube.rotation.y = seconds;
     cube.rotation.x = seconds;
