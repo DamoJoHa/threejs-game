@@ -26,24 +26,51 @@ function main() {
 
   // scene default sphere
   const sphereRad  = 1;
-  const sphereWSegs = 20;
-  const sphereHSegs = 20;
+  const sphereWSegs = 6;
+  const sphereHSegs = 6;
   const sphereGeometry = new THREE.SphereGeometry(sphereRad, sphereWSegs, sphereHSegs)
 
+  //solar system
+  const solarSystem = new THREE.Object3D();
+  objects.push(solarSystem);
+  scene.add(solarSystem);
+
+  const earthOrbit = new THREE.Object3D();
+  earthOrbit.position.x = 10;
+  objects.push(earthOrbit);
+  solarSystem.add(earthOrbit);
+
+  const moonOrbit = new THREE.Object3D();
+  moonOrbit.position.x = 2;
+  objects.push(moonOrbit)
+  earthOrbit.add(moonOrbit)
 
 
   //sun
   const sunMat = new THREE.MeshPhongMaterial({emissive: 0xFFFF00});
   const sunMesh = new THREE.Mesh(sphereGeometry, sunMat);
-  sunMesh.scale.set(5, 5, 5)
-  scene.add(sunMesh)
-  objects.push(sunMesh)
+  sunMesh.scale.set(5, 5, 5);
+  solarSystem.add(sunMesh);
+  objects.push(sunMesh);
 
+
+  //earth
+  const earthMat = new THREE.MeshPhongMaterial({color: 0x2233FF, emissive: 0x112244});
+  const earthMesh = new THREE.Mesh(sphereGeometry, earthMat);
+  earthOrbit.add(earthMesh)
+  objects.push(earthMesh)
+
+  //mood
+  const moonMat = new THREE.MeshPhongMaterial({color: 0x888888, emissive: 0x222222});
+  const moonMesh = new THREE.Mesh(sphereGeometry, moonMat);
+  moonMesh.scale.set(.3, .3, .3)
+  moonOrbit.add(moonMesh)
+  objects.push(moonMesh)
 
   //light in sun
   {
     const color = 0xFFFFFF;
-    const intensity = 3;
+    const intensity = 30;
     const light = new THREE.PointLight(color, intensity);
     scene.add(light);
   }
