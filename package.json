@@ -9,9 +9,11 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "lil-gui": "^0.19.2",
     "vite": "^5.2.0"
   },
   "dependencies": {
+    "node": "^20.13.1",
     "three": "^0.164.1"
   }
 }

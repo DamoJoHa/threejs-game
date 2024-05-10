@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import GUI from 'lil-gui'
+
 
 function main() {
   // SETUP
@@ -63,9 +65,9 @@ function main() {
   //mood
   const moonMat = new THREE.MeshPhongMaterial({color: 0x888888, emissive: 0x222222});
   const moonMesh = new THREE.Mesh(sphereGeometry, moonMat);
-  moonMesh.scale.set(.3, .3, .3)
-  moonOrbit.add(moonMesh)
-  objects.push(moonMesh)
+  moonMesh.scale.set(.3, .3, .3);
+  moonOrbit.add(moonMesh);
+  objects.push(moonMesh);
 
   //light in sun
   {
@@ -74,6 +76,49 @@ function main() {
     const light = new THREE.PointLight(color, intensity);
     scene.add(light);
   }
+
+
+  // Helpers
+  const gui = new GUI();
+
+  class AxisGridHelper {
+    constructor(node, units = 10) {
+      const axes = new THREE.AxesHelper();
+      axes.material.depthTest = false;
+      axes.renderOrder = 2;  // after the grid
+      node.add(axes);
+
+      const grid = new THREE.GridHelper(units, units);
+      grid.material.depthTest = false;
+      grid.renderOrder = 1;
+      node.add(grid);
+
+      this.grid = grid;
+      this.axes = axes;
+      this.visible = false;
+    }
+    get visible() {
+      return this._visible;
+    }
+    set visible(v) {
+      this._visible = v;
+      this.grid.visible = v;
+      this.axes.visible = v;
+    }
+  }
+
+  function makeAxisGrid(node, label, units) {
+    const helper = new AxisGridHelper(node, units);
+    gui.add(helper, 'visible').name(label);
+  }
+  makeAxisGrid(solarSystem, 'solarSystem', 25);
+  makeAxisGrid(sunMesh, 'sunMesh');
+  makeAxisGrid(earthOrbit, 'earthOrbit');
+  makeAxisGrid(earthMesh, 'earthMesh');
+  makeAxisGrid(moonOrbit, 'moonOrbit');
+  makeAxisGrid(moonMesh, 'moonMesh');
+
+
 
 
   // RENDER LOGIC
@@ -105,11 +150,11 @@ function main() {
 
     renderer.render(scene, camera);
 
-    requestAnimationFrame(render)
+    requestAnimationFrame(render);
   }
 
-  requestAnimationFrame(render)
+  requestAnimationFrame(render);
 
 }
 
-main()
+main();
