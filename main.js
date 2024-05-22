@@ -57,25 +57,27 @@ function main() {
 
 
   //earth
-  const earthMat = new THREE.MeshPhongMaterial({color: 0x2233FF, emissive: 0x112244});
+  const earthMat = new THREE.MeshStandardMaterial({color: 0x2233FF, metalness: 0.5, roughness: 0.6});
   const earthMesh = new THREE.Mesh(sphereGeometry, earthMat);
   earthOrbit.add(earthMesh)
   objects.push(earthMesh)
 
-  //mood
-  const moonMat = new THREE.MeshPhongMaterial({color: 0x888888, emissive: 0x222222});
+  //moon
+  const moonMat = new THREE.MeshStandardMaterial({color: 0x888888, emissive: 0x222222, metalness: 0.8, roughness: 0.3});
   const moonMesh = new THREE.Mesh(sphereGeometry, moonMat);
   moonMesh.scale.set(.3, .3, .3);
   moonOrbit.add(moonMesh);
   objects.push(moonMesh);
 
   //light in sun
-  {
-    const color = 0xFFFFFF;
-    const intensity = 30;
-    const light = new THREE.PointLight(color, intensity);
-    scene.add(light);
-  }
+  const color = 0xFFFFFF;
+  const intensity = 30;
+  const light = new THREE.PointLight(color, intensity);
+  scene.add(light);
+
+  // fill light
+  const sceneLight = new THREE.AmbientLight(0x404040)
+  scene.add(sceneLight)
 
 
   // Helpers
