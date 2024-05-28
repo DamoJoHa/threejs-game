@@ -15,8 +15,8 @@ function main() {
   const near = 0.1;
   const far = 60;
   const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-  camera.position.set(0, 50, 0);
-  camera.up.set(0, 0, 1);
+  camera.position.set(0, 10, 0)
+  camera.up.set(1, 0, 0)
   camera.lookAt(0, 0, 0)
 
   const scene = new THREE.Scene();
@@ -25,100 +25,96 @@ function main() {
   // SCENE CONTENTS
 
   const objects = [];
+  let currentPosition = new THREE.Vector3(0, 0, 0);
 
-  // scene default sphere
+  // player default sphere
   const sphereRad  = 1;
   const sphereWSegs = 6;
   const sphereHSegs = 6;
   const sphereGeometry = new THREE.SphereGeometry(sphereRad, sphereWSegs, sphereHSegs)
 
-  //solar system
-  const solarSystem = new THREE.Object3D();
-  objects.push(solarSystem);
-  scene.add(solarSystem);
+  // terrain cubes
+  const cubeLength = 1;
+  const cubeGeometry = new THREE.BoxGeometry(cubeLength, cubeLength, cubeLength)
+  const cubeMaterial = new THREE.MeshPhongMaterial({color: "rgb(104, 60, 3)"})
 
-  const earthOrbit = new THREE.Object3D();
-  earthOrbit.position.x = 10;
-  objects.push(earthOrbit);
-  solarSystem.add(earthOrbit);
+  // starting cube
+  const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+  objects.push(cube)
 
-  const moonOrbit = new THREE.Object3D();
-  moonOrbit.position.x = 2;
-  objects.push(moonOrbit)
-  earthOrbit.add(moonOrbit)
+  cube.position.set(...currentPosition.toArray())
+  scene.add(cube)
+  console.log(cube.position)
 
-
-  //sun
-  const sunMat = new THREE.MeshPhongMaterial({emissive: 0xFFFF00});
-  const sunMesh = new THREE.Mesh(sphereGeometry, sunMat);
-  sunMesh.scale.set(5, 5, 5);
-  solarSystem.add(sunMesh);
-  objects.push(sunMesh);
+  // main light
+  const light = new THREE.PointLight(0x404040, 40, 0, 0)
+  light.position.set(0, 10, 0)
+  scene.add(light)
 
 
-  //earth
-  const earthMat = new THREE.MeshStandardMaterial({color: 0x2233FF, metalness: 0.5, roughness: 0.6});
-  const earthMesh = new THREE.Mesh(sphereGeometry, earthMat);
-  earthOrbit.add(earthMesh)
-  objects.push(earthMesh)
+  // movement logic using wasd input
+  canvas.addEventListener("keydown", (e) =>{
+    console.log(e.keyCode)
+    switch(e.keyCode) {
+      case 87:
+        console.log("moving forward")
+        moveForwards()
+        break
+    }
+  })
 
-  //moon
-  const moonMat = new THREE.MeshStandardMaterial({color: 0x888888, emissive: 0x222222, metalness: 0.8, roughness: 0.3});
-  const moonMesh = new THREE.Mesh(sphereGeometry, moonMat);
-  moonMesh.scale.set(.3, .3, .3);
-  moonOrbit.add(moonMesh);
-  objects.push(moonMesh);
+  function moveForwards() {
+    const forewardsVector = new THREE.Vector3(1, 0, 0)
+    currentPosition.add(forewardsVector)
+    console.log(currentPosition)
 
-  //light in sun
-  const color = 0xFFFFFF;
-  const intensity = 30;
-  const light = new THREE.PointLight(color, intensity);
-  scene.add(light);
+    // new cube
+    let newCube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+    newCube.position.set(...currentPosition.toArray())
+    scene.add(newCube)
 
-  // fill light
-  const sceneLight = new THREE.AmbientLight(0x404040)
-  scene.add(sceneLight)
+  }
 
 
   // Helpers
-  const gui = new GUI();
+  // const gui = new GUI();
 
-  class AxisGridHelper {
-    constructor(node, units = 10) {
-      const axes = new THREE.AxesHelper();
-      axes.material.depthTest = false;
-      axes.renderOrder = 2;  // after the grid
-      node.add(axes);
+  // class AxisGridHelper {
+  //   constructor(node, units = 10) {
+  //     const axes = new THREE.AxesHelper();
+  //     axes.material.depthTest = false;
+  //     axes.renderOrder = 2;  // after the grid
+  //     node.add(axes);
 
-      const grid = new THREE.GridHelper(units, units);
-      grid.material.depthTest = false;
-      grid.renderOrder = 1;
-      node.add(grid);
+  //     const grid = new THREE.GridHelper(units, units);
+  //     grid.material.depthTest = false;
+  //     grid.renderOrder = 1;
+  //     node.add(grid);
 
-      this.grid = grid;
-      this.axes = axes;
-      this.visible = false;
-    }
-    get visible() {
-      return this._visible;
-    }
-    set visible(v) {
-      this._visible = v;
-      this.grid.visible = v;
-      this.axes.visible = v;
-    }
-  }
+  //     this.grid = grid;
+  //     this.axes = axes;
+  //     this.visible = false;
+  //   }
+  //   get visible() {
+  //     return this._visible;
+  //   }
+  //   set visible(v) {
+  //     this._visible = v;
+  //     this.grid.visible = v;
+  //     this.axes.visible = v;
+  //   }
+  // }
 
-  function makeAxisGrid(node, label, units) {
-    const helper = new AxisGridHelper(node, units);
-    gui.add(helper, 'visible').name(label);
-  }
-  makeAxisGrid(solarSystem, 'solarSystem', 25);
-  makeAxisGrid(sunMesh, 'sunMesh');
-  makeAxisGrid(earthOrbit, 'earthOrbit');
-  makeAxisGrid(earthMesh, 'earthMesh');
-  makeAxisGrid(moonOrbit, 'moonOrbit');
-  makeAxisGrid(moonMesh, 'moonMesh');
+  // function makeAxisGrid(node, label, units) {
+  //   const helper = new AxisGridHelper(node, units);
+  //   gui.add(helper, 'visible').name(label);
+  // }
+  // makeAxisGrid(solarSystem, 'solarSystem', 25);
+  // makeAxisGrid(sunMesh, 'sunMesh');
+  // makeAxisGrid(earthOrbit, 'earthOrbit');
+  // makeAxisGrid(earthMesh, 'earthMesh');
+  // makeAxisGrid(moonOrbit, 'moonOrbit');
+  // makeAxisGrid(moonMesh, 'moonMesh');
 
 
 
@@ -136,7 +132,7 @@ function main() {
     return needResize;
   }
 
-  // Animation function that rotates cube
+  // Resize and animate function
   function render(time) {
     const seconds = time / 1000;
 
@@ -145,10 +141,6 @@ function main() {
       camera.aspect = canvas.clientWidth / canvas.clientHeight;
       camera.updateProjectionMatrix();
     }
-
-    objects.forEach(object => {
-      object.rotation.y = seconds
-    })
 
     renderer.render(scene, camera);
 
