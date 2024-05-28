@@ -24,7 +24,7 @@ function main() {
 
   // SCENE CONTENTS
 
-  const objects = [];
+  const coordinates = [];
   let currentPosition = new THREE.Vector3(0, 0, 0);
 
   // player default sphere
@@ -40,11 +40,9 @@ function main() {
 
   // starting cube
   const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
-  objects.push(cube)
-
   cube.position.set(...currentPosition.toArray())
   scene.add(cube)
-  console.log(cube.position)
+  coordinates.push(currentPosition.toArray().toString())
 
   // main light
   const light = new THREE.PointLight(0x404040, 40, 0, 0)
@@ -60,20 +58,68 @@ function main() {
         console.log("moving forward")
         moveForwards()
         break
+      case 65:
+        console.log("moving left")
+        moveLeft()
+        break
+      case 68:
+        console.log("moving right")
+        moveRight()
+        break
+      case 83:
+        console.log("moving back")
+        moveBack()
+        break
     }
   })
+
+
+  // Movement functions can be collapes into above code later, maybe
 
   function moveForwards() {
     const forewardsVector = new THREE.Vector3(1, 0, 0)
     currentPosition.add(forewardsVector)
-    console.log(currentPosition)
+    newCube()
+  }
 
-    // new cube
+  function moveLeft() {
+    const leftVector = new THREE.Vector3(0, 0, -1)
+    currentPosition.add(leftVector)
+    newCube()
+  }
+
+  function moveRight() {
+    const rightVector = new THREE.Vector3(0, 0, 1)
+    currentPosition.add(rightVector)
+    newCube()
+  }
+
+  function moveBack() {
+    const backVector = new THREE.Vector3(-1, 0 , 0)
+    currentPosition.add(backVector)
+    newCube()
+  }
+
+  // creates a new position cube based on the
+  function newCube() {
+    console.log(coordinates)
+    let coordString = currentPosition.toArray().toString()
+    if (coordinates.includes(coordString)) {
+      console.log("not placing")
+      return
+    }
     let newCube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+    console.log(currentPosition)
     newCube.position.set(...currentPosition.toArray())
     scene.add(newCube)
-
+    coordinates.push(coordString)
   }
+
+
+  //testing
+
+  let array = [[1, 2], 1]
+  console.log(array.includes([1, 2]))
 
 
   // Helpers
