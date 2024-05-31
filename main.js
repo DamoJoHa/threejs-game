@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import GUI from 'lil-gui'
+import { sin } from 'three/examples/jsm/nodes/Nodes.js';
 
 
 function main() {
@@ -28,10 +29,14 @@ function main() {
   let currentPosition = new THREE.Vector3(0, 0, 0);
 
   // player default sphere
-  const sphereRad  = 1;
-  const sphereWSegs = 6;
-  const sphereHSegs = 6;
+  const sphereRad  = .25;
+  const sphereWSegs = 12;
+  const sphereHSegs = 12;
   const sphereGeometry = new THREE.SphereGeometry(sphereRad, sphereWSegs, sphereHSegs)
+  const playerMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 20, 144)", emmisive: "100, 12, 12"})
+
+  const player = new THREE.Mesh(sphereGeometry, playerMaterial)
+  scene.add(player)
 
   // terrain cubes
   const cubeLength = 1;
@@ -187,6 +192,8 @@ function main() {
       camera.aspect = canvas.clientWidth / canvas.clientHeight;
       camera.updateProjectionMatrix();
     }
+
+    player.position.setY(.5 * Math.sin(seconds) + 1)
 
     renderer.render(scene, camera);
 
