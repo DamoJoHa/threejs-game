@@ -16,7 +16,7 @@ function main() {
   const near = 0.1;
   const far = 60;
   const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-  camera.position.set(0, 10, 0)
+  camera.position.set(-10, 10, 0)
   camera.up.set(1, 0, 0)
   camera.lookAt(0, 0, 0)
 
@@ -54,6 +54,9 @@ function main() {
   light.position.set(0, 10, 0)
   scene.add(light)
 
+  // fill light
+  const fill = new THREE.AmbientLight(0x404040, 20)
+  scene.add(fill)
 
   // movement logic using wasd input
   canvas.addEventListener("keydown", (e) =>{
@@ -76,6 +79,7 @@ function main() {
         moveBack()
         break
     }
+    movePlayer()
   })
 
 
@@ -120,7 +124,11 @@ function main() {
     coordinates.push(coordString)
   }
 
-
+  // must always occur AFTER newCube (or something else that sets currentPosition) is called
+  function movePlayer() {
+    player.position.setX(currentPosition.x)
+    player.position.setZ(currentPosition.z)
+  }
   //testing
 
   let array = [[1, 2], 1]
@@ -193,7 +201,8 @@ function main() {
       camera.updateProjectionMatrix();
     }
 
-    player.position.setY(.5 * Math.sin(seconds) + 1)
+    // player float
+    player.position.setY(.25 * Math.sin(seconds) + 1)
 
     renderer.render(scene, camera);
 
