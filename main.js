@@ -24,7 +24,8 @@ function main() {
 
 
   // SCENE CONTENTS
-
+  let goalCoordinates;
+  let gamePlayState = true;
   const coordinates = [];
   let currentPosition = new THREE.Vector3(0, 0, 0);
 
@@ -33,7 +34,7 @@ function main() {
   const sphereWSegs = 12;
   const sphereHSegs = 12;
   const sphereGeometry = new THREE.SphereGeometry(sphereRad, sphereWSegs, sphereHSegs)
-  const playerMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 20, 144)", emmisive: "100, 12, 12"})
+  const playerMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 20, 144)", emissive: "rgb(100, 12, 12)"})
 
   const player = new THREE.Mesh(sphereGeometry, playerMaterial)
   scene.add(player)
@@ -42,6 +43,7 @@ function main() {
   const cubeLength = 1;
   const cubeGeometry = new THREE.BoxGeometry(cubeLength, cubeLength, cubeLength)
   const cubeMaterial = new THREE.MeshPhongMaterial({color: "rgb(104, 60, 3)"})
+  const winMaterial = new THREE.MeshPhongMaterial({color: "rgb(255,191,0)}"})
 
   // starting cube
   const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
@@ -61,6 +63,10 @@ function main() {
   // movement logic using wasd input
   canvas.addEventListener("keydown", (e) =>{
     console.log(e.keyCode)
+    if (!gamePlayState) {
+      //insert logic to reset game !!!
+      return
+    }
     switch(e.keyCode) {
       case 87:
         console.log("moving forward")
@@ -114,14 +120,24 @@ function main() {
     console.log(coordinates)
     let coordString = currentPosition.toArray().toString()
     if (coordinates.includes(coordString)) {
+      // avoid duplicate cubes
       console.log("not placing")
       return
+    } else if (coordString == goalCoordinates) {
+      // game is won
+      let winCube = new THREE.Mesh(cubeGeometry, winMaterial)
+      winCube.position.set(...currentPosition.toArray())
+      scene.add(winCube)
+      coordinates.push(coordString)
+      gamePlayState = false
+    } else {
+      // move and create cube
+      let newCube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+      console.log(currentPosition)
+      newCube.position.set(...currentPosition.toArray())
+      scene.add(newCube)
+      coordinates.push(coordString)
     }
-    let newCube = new THREE.Mesh(cubeGeometry, cubeMaterial)
-    console.log(currentPosition)
-    newCube.position.set(...currentPosition.toArray())
-    scene.add(newCube)
-    coordinates.push(coordString)
   }
 
   // must always occur AFTER newCube (or something else that sets currentPosition) is called
@@ -129,10 +145,19 @@ function main() {
     player.position.setX(currentPosition.x)
     player.position.setZ(currentPosition.z)
   }
-  //testing
 
-  let array = [[1, 2], 1]
-  console.log(array.includes([1, 2]))
+  // returns number between -10 and 10
+  function randNum() {
+    return Math.ceil((Math.random() -0.5) * 20)
+  }
+
+  function newGame() {
+    let x = randNum()
+    let z = randNum()
+    goalCoordinates = `${x},0,${z}`
+    console.log(goalCoordinates)
+  }
+
 
 
   // Helpers
@@ -191,7 +216,7 @@ function main() {
     return needResize;
   }
 
-  // Resize and animate function
+  // Resize and animate function + game logic
   function render(time) {
     const seconds = time / 1000;
 
@@ -209,6 +234,7 @@ function main() {
     requestAnimationFrame(render);
   }
 
+  newGame()
   requestAnimationFrame(render);
 
 }
