@@ -5,8 +5,6 @@ import { sin } from 'three/examples/jsm/nodes/Nodes.js';
 
 function main() {
   // SETUP
-
-
   const canvas = document.querySelector("#c")
   const renderer = new THREE.WebGLRenderer({antialias: true, canvas})
 
@@ -24,10 +22,13 @@ function main() {
 
 
   // SCENE CONTENTS
+
+  // gamestate (declared here, assigned values in newGame method
   let goalCoordinates;
-  let gamePlayState = true;
-  const coordinates = [];
-  let currentPosition = new THREE.Vector3(0, 0, 0);
+  let gamePlayState;
+  let coordinates;
+  let currentPosition;
+
 
   // player default sphere
   const sphereRad  = .25;
@@ -40,17 +41,21 @@ function main() {
   scene.add(player)
 
   // terrain cubes
+  // note: consider batched mesh if performance becomes a concern
   const cubeLength = 1;
   const cubeGeometry = new THREE.BoxGeometry(cubeLength, cubeLength, cubeLength)
+
+  // ***consider replacing cubeMaterial with a series of mats corresponding to distance from goal?)
   const cubeMaterial = new THREE.MeshPhongMaterial({color: "rgb(104, 60, 3)"})
   const winMaterial = new THREE.MeshPhongMaterial({color: "rgb(255,191,0)}"})
   const startMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 150, 30)"})
 
-  // starting cube
+  // starting cube & group for extra cubes
   const cube = new THREE.Mesh(cubeGeometry, startMaterial)
-  cube.position.set(...currentPosition.toArray())
   scene.add(cube)
-  coordinates.push(currentPosition.toArray().toString())
+  let cubes = new THREE.Group();
+  scene.add(cubes)
+
 
   // main light
   const light = new THREE.PointLight(0x404040, 40, 0, 0)
@@ -66,6 +71,7 @@ function main() {
     console.log(e.keyCode)
     if (!gamePlayState) {
       //insert logic to reset game !!!
+      newGame()
       return
     }
     switch(e.keyCode) {
@@ -118,7 +124,6 @@ function main() {
 
   // creates a new position cube based on the
   function newCube() {
-    console.log(coordinates)
     let coordString = currentPosition.toArray().toString()
     if (coordinates.includes(coordString)) {
       // avoid duplicate cubes
@@ -128,15 +133,14 @@ function main() {
       // game is won
       let winCube = new THREE.Mesh(cubeGeometry, winMaterial)
       winCube.position.set(...currentPosition.toArray())
-      scene.add(winCube)
+      cubes.add(winCube)
       coordinates.push(coordString)
       gamePlayState = false
     } else {
       // move and create cube
       let newCube = new THREE.Mesh(cubeGeometry, cubeMaterial)
-      console.log(currentPosition)
       newCube.position.set(...currentPosition.toArray())
-      scene.add(newCube)
+      cubes.add(newCube)
       coordinates.push(coordString)
     }
   }
@@ -147,16 +151,33 @@ function main() {
     player.position.setZ(currentPosition.z)
   }
 
+  function resetPlayer() {
+    currentPosition = new THREE.Vector3(0, 0, 0);
+    movePlayer()
+  }
+
   // returns number between -10 and 10
   function randNum() {
     return Math.ceil((Math.random() -0.5) * 20)
   }
 
   function newGame() {
+    resetPlayer()
+    coordinates = []
+    coordinates.push(currentPosition.toArray().toString())
+
+    // reset cubes
+    cubes.clear()
+
+
+    // setup goal coords
     let x = randNum()
     let z = randNum()
     goalCoordinates = `${x},0,${z}`
     console.log(goalCoordinates)
+
+    // TODO generate traps
+    gamePlayState = true
   }
 
 
