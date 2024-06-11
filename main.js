@@ -44,9 +44,10 @@ function main() {
   const cubeGeometry = new THREE.BoxGeometry(cubeLength, cubeLength, cubeLength)
   const cubeMaterial = new THREE.MeshPhongMaterial({color: "rgb(104, 60, 3)"})
   const winMaterial = new THREE.MeshPhongMaterial({color: "rgb(255,191,0)}"})
+  const startMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 150, 30)"})
 
   // starting cube
-  const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+  const cube = new THREE.Mesh(cubeGeometry, startMaterial)
   cube.position.set(...currentPosition.toArray())
   scene.add(cube)
   coordinates.push(currentPosition.toArray().toString())
