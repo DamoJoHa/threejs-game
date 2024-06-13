@@ -25,8 +25,6 @@ function main() {
 
   // gamestate (declared here, assigned values in newGame method
   let goalCoordinates;
-  // goalString can be removed once I'm using calculations for distance
-  let goalString;
   let gamePlayState;
   let coordinates;
   let currentPosition;
@@ -134,30 +132,25 @@ function main() {
       // avoid duplicate cubes
       console.log("not placing")
       return
-    } else if (coordString == goalString) {
-      // game is won
-      let goalCube = new THREE.Mesh(cubeGeometry, goalMaterial)
-      goalCube.position.set(...currentPosition.toArray())
-      cubes.add(goalCube)
-      coordinates.push(coordString)
-      gamePlayState = false
     } else {
-      // move and create cube
-      let newCubeMaterial = selectMaterial()
+      let distance = Math.sqrt((goalCoordinates.x - currentPosition.x)**2 + (goalCoordinates.z - currentPosition.z)**2)
+      console.log(distance)
+      let newCubeMaterial = selectMaterial(distance)
       let newCube = new THREE.Mesh(cubeGeometry, newCubeMaterial)
       newCube.position.set(...currentPosition.toArray())
       cubes.add(newCube)
       coordinates.push(coordString)
+      // switches play state if goal is reached
+      gamePlayState = (distance != 0)
     }
   }
 
 
   // Returns cube material based on distance from goal
-  function selectMaterial() {
-    // find distance from goal
-    let distance = Math.sqrt((goalCoordinates.x - currentPosition.x)**2 + (goalCoordinates.z - currentPosition.z)**2)
-    console.log(distance)
+  function selectMaterial(distance) {
     switch(Math.floor(distance)) {
+      case 0:
+        return goalMaterial
       case 1:
         return firstRingMaterial
       case 2:
@@ -198,8 +191,7 @@ function main() {
     let x = randNum()
     let z = randNum()
     goalCoordinates = new THREE.Vector3(x, 0 , z)
-    goalString = `${x},0,${z}`
-    console.log(goalString)
+    // console.log(goalCoordinates)
 
     // TODO generate traps
     gamePlayState = true
