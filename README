@@ -1,1 +1,14 @@
-For now this is just a follow-along of the three js manual's guides
+Cube Game (?)
+
+I'm using this repo as a bit of a playground for three.js, and for thinking in three dimensions.
+
+Currently, the game just consists of repeatedly seeking out the goal, using wasd for movement.  Once the goal is reached, any key will reset.
+
+Goals/Ideas
+
+- [ ] Generate traps for player (trivia type thing? Language practice, maybe?)
+- [ ] Reveal larger area around player (?)
+- [x] Cube material based on proximity to goal
+- [ ] Score counter (reaching goal/trivia answers)
+- [x] Change goal generation to exclude super low values (generation at origin probably soft locks)
+- [ ] Movement animation (probably with pauses)
