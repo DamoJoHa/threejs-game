@@ -133,8 +133,7 @@ function main() {
       console.log("not placing")
       return
     } else {
-      let distance = Math.sqrt((goalCoordinates.x - currentPosition.x)**2 + (goalCoordinates.z - currentPosition.z)**2)
-      console.log(distance)
+      let distance = findDistance()
       let newCubeMaterial = selectMaterial(distance)
       let newCube = new THREE.Mesh(cubeGeometry, newCubeMaterial)
       newCube.position.set(...currentPosition.toArray())
@@ -163,6 +162,10 @@ function main() {
   }
 
   // must always occur AFTER newCube (or something else that sets currentPosition) is called
+  function findDistance() {
+    return Math.sqrt((goalCoordinates.x - currentPosition.x)**2 + (goalCoordinates.z - currentPosition.z)**2)
+  }
+
   function movePlayer() {
     player.position.setX(currentPosition.x)
     player.position.setZ(currentPosition.z)
@@ -187,10 +190,16 @@ function main() {
     cubes.clear()
 
 
-    // setup goal coords
-    let x = randNum()
-    let z = randNum()
-    goalCoordinates = new THREE.Vector3(x, 0 , z)
+    // setup goal coords at least a few blocks away
+    let distance = 0
+    while (distance < 3) {
+      console.log("generating coords")
+      let x = randNum()
+      let z = randNum()
+      goalCoordinates = new THREE.Vector3(x, 0 , z)
+      distance = findDistance()
+    }
+
     // console.log(goalCoordinates)
 
     // TODO generate traps
