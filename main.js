@@ -25,6 +25,8 @@ function main() {
 
   // gamestate (declared here, assigned values in newGame method
   let goalCoordinates;
+  // goalString can be removed once I'm using calculations for distance
+  let goalString;
   let gamePlayState;
   let coordinates;
   let currentPosition;
@@ -46,8 +48,11 @@ function main() {
   const cubeGeometry = new THREE.BoxGeometry(cubeLength, cubeLength, cubeLength)
 
   // ***consider replacing cubeMaterial with a series of mats corresponding to distance from goal?)
-  const cubeMaterial = new THREE.MeshPhongMaterial({color: "rgb(104, 60, 3)"})
-  const winMaterial = new THREE.MeshPhongMaterial({color: "rgb(255,191,0)}"})
+  const defaultMaterial = new THREE.MeshPhongMaterial({color: "rgb(237, 242, 251)"})
+  const firstRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(171, 196, 255)"})
+  const secondRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(193, 211, 254)"})
+  const thirdRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(215, 227, 252)"})
+  const goalMaterial = new THREE.MeshPhongMaterial({color: "rgb(255,191,0)}"})
   const startMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 150, 30)"})
 
   // starting cube & group for extra cubes
@@ -70,7 +75,7 @@ function main() {
   canvas.addEventListener("keydown", (e) =>{
     console.log(e.keyCode)
     if (!gamePlayState) {
-      //insert logic to reset game !!!
+      // reset game if game is not in "Play State"
       newGame()
       return
     }
@@ -129,19 +134,38 @@ function main() {
       // avoid duplicate cubes
       console.log("not placing")
       return
-    } else if (coordString == goalCoordinates) {
+    } else if (coordString == goalString) {
       // game is won
-      let winCube = new THREE.Mesh(cubeGeometry, winMaterial)
-      winCube.position.set(...currentPosition.toArray())
-      cubes.add(winCube)
+      let goalCube = new THREE.Mesh(cubeGeometry, goalMaterial)
+      goalCube.position.set(...currentPosition.toArray())
+      cubes.add(goalCube)
       coordinates.push(coordString)
       gamePlayState = false
     } else {
       // move and create cube
-      let newCube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+      let newCubeMaterial = selectMaterial()
+      let newCube = new THREE.Mesh(cubeGeometry, newCubeMaterial)
       newCube.position.set(...currentPosition.toArray())
       cubes.add(newCube)
       coordinates.push(coordString)
+    }
+  }
+
+
+  // Returns cube material based on distance from goal
+  function selectMaterial() {
+    // find distance from goal
+    let distance = Math.sqrt((goalCoordinates.x - currentPosition.x)**2 + (goalCoordinates.z - currentPosition.z)**2)
+    console.log(distance)
+    switch(Math.floor(distance)) {
+      case 1:
+        return firstRingMaterial
+      case 2:
+        return secondRingMaterial
+      case 3:
+        return thirdRingMaterial
+      default:
+        return defaultMaterial
     }
   }
 
@@ -173,8 +197,9 @@ function main() {
     // setup goal coords
     let x = randNum()
     let z = randNum()
-    goalCoordinates = `${x},0,${z}`
-    console.log(goalCoordinates)
+    goalCoordinates = new THREE.Vector3(x, 0 , z)
+    goalString = `${x},0,${z}`
+    console.log(goalString)
 
     // TODO generate traps
     gamePlayState = true
