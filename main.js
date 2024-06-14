@@ -29,6 +29,11 @@ function main() {
   let coordinates;
   let currentPosition;
 
+  // score tracking
+  let score = 0;
+  let scoreSpan = document.getElementById("score")
+
+
 
   // player default sphere
   const sphereRad  = .25;
@@ -140,7 +145,11 @@ function main() {
       cubes.add(newCube)
       coordinates.push(coordString)
       // switches play state if goal is reached
-      gamePlayState = (distance != 0)
+      if (distance === 0) {
+        gamePlayState = false
+        score += 1
+        updateScore()
+      }
     }
   }
 
@@ -174,6 +183,10 @@ function main() {
   function resetPlayer() {
     currentPosition = new THREE.Vector3(0, 0, 0);
     movePlayer()
+  }
+
+  function updateScore() {
+    scoreSpan.innerText = `${score} Point${score === 1 ? "" : "s"}`
   }
 
   // returns number between -10 and 10

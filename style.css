@@ -9,3 +9,11 @@ html, body {
   display: block;
   outline: none;
 }
+
+#score {
+  color: white;
+  position: absolute;
+  left: 50px;
+  top: 50px;
+  z-index: 2;
+}
