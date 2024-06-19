@@ -149,11 +149,13 @@ function main() {
       newCube.position.set(...currentPosition.toArray())
       cubes.add(newCube)
       coordinates.push(coordString)
-      // switches play state if goal is reached
+      // switches play state if goal or trap is reached
       if (goalDistance === 0) {
         gamePlayState = false
         score += 1
         updateScore()
+      } else if (trapDistance === 0) {
+        
       }
     }
   }
@@ -176,8 +178,6 @@ function main() {
   }
 
   // must always occur AFTER newCube (or something else that sets currentPosition) is called
-
-
   function movePlayer() {
     player.position.setX(currentPosition.x)
     player.position.setZ(currentPosition.z)
