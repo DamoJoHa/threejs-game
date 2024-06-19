@@ -1,12 +1,14 @@
 import * as THREE from 'three';
-import GUI from 'lil-gui'
-import { sin } from 'three/examples/jsm/nodes/Nodes.js';
+// import GUI from 'lil-gui'
+// import { sin } from 'three/examples/jsm/nodes/Nodes.js';
 
 
 function main() {
   // SETUP
   const canvas = document.querySelector("#c")
   const renderer = new THREE.WebGLRenderer({antialias: true, canvas})
+  const originCoordinates = new THREE.Vector3(0, 0, 0)
+
 
 
   const fov = 75;
@@ -28,6 +30,7 @@ function main() {
   let gamePlayState;
   let coordinates;
   let currentPosition;
+  let trapCoordinates;
 
   // score tracking
   let score = 0;
@@ -50,13 +53,14 @@ function main() {
   const cubeLength = 1;
   const cubeGeometry = new THREE.BoxGeometry(cubeLength, cubeLength, cubeLength)
 
-  // ***consider replacing cubeMaterial with a series of mats corresponding to distance from goal?)
+  // Cube materials
   const defaultMaterial = new THREE.MeshPhongMaterial({color: "rgb(237, 242, 251)"})
   const firstRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(171, 196, 255)"})
   const secondRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(193, 211, 254)"})
   const thirdRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(215, 227, 252)"})
   const goalMaterial = new THREE.MeshPhongMaterial({color: "rgb(255,191,0)}"})
   const startMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 150, 30)"})
+  const trapMaterial = new THREE.MeshPhongMaterial({color: "red"})
 
   // starting cube & group for extra cubes
   const cube = new THREE.Mesh(cubeGeometry, startMaterial)
@@ -138,14 +142,15 @@ function main() {
       console.log("not placing")
       return
     } else {
-      let distance = findDistance()
-      let newCubeMaterial = selectMaterial(distance)
+      let trapDistance = findDistance(trapCoordinates, currentPosition)
+      let goalDistance = findDistance(goalCoordinates, currentPosition)
+      let newCubeMaterial = trapDistance === 0 ? trapMaterial : selectMaterial(goalDistance)
       let newCube = new THREE.Mesh(cubeGeometry, newCubeMaterial)
       newCube.position.set(...currentPosition.toArray())
       cubes.add(newCube)
       coordinates.push(coordString)
       // switches play state if goal is reached
-      if (distance === 0) {
+      if (goalDistance === 0) {
         gamePlayState = false
         score += 1
         updateScore()
@@ -171,9 +176,7 @@ function main() {
   }
 
   // must always occur AFTER newCube (or something else that sets currentPosition) is called
-  function findDistance() {
-    return Math.sqrt((goalCoordinates.x - currentPosition.x)**2 + (goalCoordinates.z - currentPosition.z)**2)
-  }
+
 
   function movePlayer() {
     player.position.setX(currentPosition.x)
@@ -194,6 +197,11 @@ function main() {
     return Math.ceil((Math.random() -0.5) * 20)
   }
 
+  //find distance between two points (takes two vector3's)
+  function findDistance(locA, locB) {
+    return Math.sqrt((locA.x - locB.x)**2 + (locA.z - locB.z)**2)
+  }
+
   function newGame() {
     resetPlayer()
     coordinates = []
@@ -206,14 +214,25 @@ function main() {
     // setup goal coords at least a few blocks away
     let distance = 0
     while (distance < 3) {
-      console.log("generating coords")
+      console.log("generating coords for goal")
       let x = randNum()
       let z = randNum()
       goalCoordinates = new THREE.Vector3(x, 0 , z)
-      distance = findDistance()
+      distance = findDistance(goalCoordinates, originCoordinates)
     }
 
-    // console.log(goalCoordinates)
+    // setup for traps, measure against both origin and goal
+    let distanceOrigin = 0
+    let distanceGoal = 0
+    while ((distanceOrigin < 3) & (distanceGoal < 3)) {
+      console.log("generating coords for trap")
+      let x = randNum()
+      let z = randNum()
+      trapCoordinates = new THREE.Vector3(x, 0 , z)
+      distanceOrigin = findDistance(originCoordinates, trapCoordinates)
+      distanceGoal = findDistance(goalCoordinates, originCoordinates)
+    }
+    console.log(trapCoordinates)
 
     // TODO generate traps
     gamePlayState = true
@@ -300,4 +319,4 @@ function main() {
 
 }
 
-main();
+main()
