@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import newQuestion from './js/quiz.js'
 // import GUI from 'lil-gui'
 // import { sin } from 'three/examples/jsm/nodes/Nodes.js';
 
@@ -155,7 +156,7 @@ function main() {
         score += 1
         updateScore()
       } else if (trapDistance === 0) {
-        
+        newQuestion()
       }
     }
   }
