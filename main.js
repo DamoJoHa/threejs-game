@@ -9,6 +9,8 @@ function main() {
   const canvas = document.querySelector("#c")
   const renderer = new THREE.WebGLRenderer({antialias: true, canvas})
   const originCoordinates = new THREE.Vector3(0, 0, 0)
+  const form = document.getElementById("question-form")
+  const formLayer = document.getElementById("question-layer")
 
 
 
@@ -27,11 +29,17 @@ function main() {
   // SCENE CONTENTS
 
   // gamestate (declared here, assigned values in newGame method
+
   let goalCoordinates;
+  // keeps track of how keyboard inputs should be handled
   let gamePlayState;
+  // tracks if the player & board need to be reset
+  let gameReset;
   let coordinates;
   let currentPosition;
   let trapCoordinates;
+  // tracks answer for trivia
+  let correctAnswer;
 
   // score tracking
   let score = 0;
@@ -82,35 +90,35 @@ function main() {
   // movement logic using wasd input
   canvas.addEventListener("keydown", (e) =>{
     console.log(e.keyCode)
-    if (!gamePlayState) {
-      // reset game if game is not in "Play State"
+    if (gameReset) {
+      // reset game if game is in reset state
       newGame()
       return
+    } else if (gamePlayState) {
+      switch(e.keyCode) {
+        case 87:
+          console.log("moving forward")
+          moveForwards()
+          break
+        case 65:
+          console.log("moving left")
+          moveLeft()
+          break
+        case 68:
+          console.log("moving right")
+          moveRight()
+          break
+        case 83:
+          console.log("moving back")
+          moveBack()
+          break
+      }
+      movePlayer()
     }
-    switch(e.keyCode) {
-      case 87:
-        console.log("moving forward")
-        moveForwards()
-        break
-      case 65:
-        console.log("moving left")
-        moveLeft()
-        break
-      case 68:
-        console.log("moving right")
-        moveRight()
-        break
-      case 83:
-        console.log("moving back")
-        moveBack()
-        break
-    }
-    movePlayer()
   })
 
 
   // Movement functions can be collapes into above code later, maybe
-
   function moveForwards() {
     const forewardsVector = new THREE.Vector3(1, 0, 0)
     currentPosition.add(forewardsVector)
@@ -136,7 +144,7 @@ function main() {
   }
 
   // creates a new position cube based on the
-  function newCube() {
+  async function newCube() {
     let coordString = currentPosition.toArray().toString()
     if (coordinates.includes(coordString)) {
       // avoid duplicate cubes
@@ -152,11 +160,12 @@ function main() {
       coordinates.push(coordString)
       // switches play state if goal or trap is reached
       if (goalDistance === 0) {
-        gamePlayState = false
+        gameReset = true
         score += 1
         updateScore()
       } else if (trapDistance === 0) {
-        newQuestion()
+        gamePlayState = false
+        correctAnswer = await newQuestion(form, formLayer)
       }
     }
   }
@@ -237,6 +246,7 @@ function main() {
 
     // TODO generate traps
     gamePlayState = true
+    gameReset = false
   }
 
 
@@ -314,6 +324,23 @@ function main() {
 
     requestAnimationFrame(render);
   }
+
+   // handle submission of form
+   form.addEventListener("submit", event => {
+    event.preventDefault();
+    formLayer.style.display = "none"
+    const data = new FormData(form)
+    const obj = Object.fromEntries(data)
+    if (parseInt(obj.answer) === correctAnswer) {
+      console.log("correct")
+      score += 1
+      gamePlayState = true
+    } else {
+      console.log("incorrect")
+      gameReset = true
+    }
+
+  })
 
   newGame()
   requestAnimationFrame(render);
