@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { FontLoader } from 'three/examples/jsm/Addons.js';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+
 import newQuestion from './js/quiz.js'
 // import GUI from 'lil-gui'
 // import { sin } from 'three/examples/jsm/nodes/Nodes.js';
@@ -11,7 +14,6 @@ function main() {
   const originCoordinates = new THREE.Vector3(0, 0, 0)
   const form = document.getElementById("question-form")
   const formLayer = document.getElementById("question-layer")
-
 
 
   const fov = 75;
@@ -44,6 +46,27 @@ function main() {
   // score tracking
   let score = 0;
   let scoreSpan = document.getElementById("score")
+
+
+
+  // 3D fonts
+  const redMat = new THREE.MeshPhongMaterial({color: "red"})
+  const fontLoader = new FontLoader();
+  fontLoader.load('fonts/optimer_regular.typeface.json', function (font) {
+    const helloGeometry = new TextGeometry("Trap", {
+      font: font,
+      size: 20,
+      depth: 2,
+      curveSegments: 12,
+      bevelEnabled: false,
+    })
+    helloGeometry.center()
+    helloGeometry.scale(0.25, 0.25, 0.25)
+    const hello = new THREE.Mesh(helloGeometry, redMat)
+    hello.rotateY(-1.55)
+    console.log(hello)
+    scene.add(hello)
+  })
 
 
 
@@ -292,6 +315,11 @@ function main() {
   // makeAxisGrid(moonMesh, 'moonMesh');
 
 
+
+  // flash message
+  function flashMessage(message) {
+
+  }
 
 
   // RENDER LOGIC

@@ -39,3 +39,7 @@ body {
   text-align: center;
   padding: 12px;
 }
+
+#flash-message {
+  color: white;
+}
