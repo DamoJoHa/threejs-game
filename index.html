@@ -9,6 +9,19 @@
   </head>
   <script type="module" src="/main.js"></script>
   <body>
-    <canvas id="c"></canvas>
+    <p id="score">0 Points</p>
+    <canvas id="c" tabindex="0"></canvas>
+    <div id="question-layer">
+      <form id="question-form">
+        <p id="question-text">Question Text</p>
+        <select name="answer" default>
+          <option value="0" id="question-answer-0">Option A</option>
+          <option value="1" id="question-answer-1">Option B</option>
+          <option value="2" id="question-answer-2">Option C</option>
+          <option value="3" id="question-answer-3">Option D</option>
+        </select>
+        <button type="submit">Submit</button>
+      </form>
+    </div>
   </body>
 </html>
