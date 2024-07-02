@@ -40,6 +40,8 @@ function main() {
   let coordinates;
   let currentPosition;
   let trapCoordinates;
+  let trappedTextVisible = false;
+
   // tracks answer for trivia
   let correctAnswer;
 
@@ -50,22 +52,23 @@ function main() {
 
 
   // 3D fonts
-  const redMat = new THREE.MeshPhongMaterial({color: "red"})
+  const redTextMat = new THREE.MeshPhysicalMaterial({color: "#ff0000", transparent: true, opacity: 1})
   const fontLoader = new FontLoader();
+  let trappedText
   fontLoader.load('fonts/optimer_regular.typeface.json', function (font) {
-    const helloGeometry = new TextGeometry("Trap", {
+    const trapGeometry = new TextGeometry("Trapped!", {
       font: font,
       size: 20,
       depth: 2,
       curveSegments: 12,
       bevelEnabled: false,
     })
-    helloGeometry.center()
-    helloGeometry.scale(0.25, 0.25, 0.25)
-    const hello = new THREE.Mesh(helloGeometry, redMat)
-    hello.rotateY(-1.55)
-    console.log(hello)
-    scene.add(hello)
+    trapGeometry.center()
+    trapGeometry.scale(0.1, 0.1, 0.1)
+    trappedText = new THREE.Mesh(trapGeometry, redTextMat)
+    trappedText.rotateY(-1.55)
+    trappedText.visible = false
+    scene.add(trappedText)
   })
 
 
@@ -188,6 +191,7 @@ function main() {
         updateScore()
       } else if (trapDistance === 0) {
         gamePlayState = false
+        flashTrap()
         correctAnswer = await newQuestion(form, formLayer)
       }
     }
@@ -274,51 +278,16 @@ function main() {
 
 
 
-  // Helpers
-  // const gui = new GUI();
-
-  // class AxisGridHelper {
-  //   constructor(node, units = 10) {
-  //     const axes = new THREE.AxesHelper();
-  //     axes.material.depthTest = false;
-  //     axes.renderOrder = 2;  // after the grid
-  //     node.add(axes);
-
-  //     const grid = new THREE.GridHelper(units, units);
-  //     grid.material.depthTest = false;
-  //     grid.renderOrder = 1;
-  //     node.add(grid);
-
-  //     this.grid = grid;
-  //     this.axes = axes;
-  //     this.visible = false;
-  //   }
-  //   get visible() {
-  //     return this._visible;
-  //   }
-  //   set visible(v) {
-  //     this._visible = v;
-  //     this.grid.visible = v;
-  //     this.axes.visible = v;
-  //   }
-  // }
-
-  // function makeAxisGrid(node, label, units) {
-  //   const helper = new AxisGridHelper(node, units);
-  //   gui.add(helper, 'visible').name(label);
-  // }
-  // makeAxisGrid(solarSystem, 'solarSystem', 25);
-  // makeAxisGrid(sunMesh, 'sunMesh');
-  // makeAxisGrid(earthOrbit, 'earthOrbit');
-  // makeAxisGrid(earthMesh, 'earthMesh');
-  // makeAxisGrid(moonOrbit, 'moonOrbit');
-  // makeAxisGrid(moonMesh, 'moonMesh');
-
-
-
-  // flash message
-  function flashMessage(message) {
-
+  // trapped message
+  function flashTrap(message) {
+    trappedText.position.set(currentPosition.x, 3, currentPosition.z)
+    redTextMat.opacity = 1
+    trappedText.visible = true
+    trappedTextVisible = true
+    setTimeout(() => {
+      trappedText.visible = false
+      trappedTextVisible = false
+    }, 3000);
   }
 
 
@@ -347,6 +316,15 @@ function main() {
 
     // player float
     player.position.setY(.25 * Math.sin(seconds) + 1)
+
+    // rising "Trapped!" message
+    if (trappedTextVisible) {
+      redTextMat.opacity -= 0.01
+      trappedText.position.y += 0.01
+    }
+
+
+
 
     renderer.render(scene, camera);
 

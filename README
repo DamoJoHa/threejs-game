@@ -6,10 +6,12 @@ Currently, the game just consists of repeatedly seeking out the goal, using wasd
 
 Goals/Ideas
 
-- [ ] Figure out Three fonts (migrate score counter?)
 - [ ] Reveal larger area around player (?)
 - [ ] Movement animation (probably with pauses)
 - [ ] More interesting terrain
+- [ ] More/better traps
+- [ ] Better looking trivia bit (consider 3d text?)
+- [x] Figure out Three fonts
 - [x] Generate traps for player (trivia type thing? Language practice, maybe?)
 - [x] Cube material based on proximity to goal
 - [x] Score counter (reaching goal/trivia answers)
