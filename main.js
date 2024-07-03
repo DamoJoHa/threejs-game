@@ -4,6 +4,7 @@ import { FontLoader } from 'three/examples/jsm/Addons.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
 import newQuestion from './js/quiz.js'
+import { PI } from 'three/examples/jsm/nodes/Nodes.js';
 // import GUI from 'lil-gui'
 // import { sin } from 'three/examples/jsm/nodes/Nodes.js';
 
@@ -25,7 +26,7 @@ function main() {
   camera.position.set(-10, 10, 0)
   camera.up.set(1, 0, 0)
   camera.lookAt(0, 0, 0)
-
+  const playerSpeed = 500
   const scene = new THREE.Scene();
 
 
@@ -43,6 +44,8 @@ function main() {
   let currentPosition;
   let trapCoordinates;
   let trappedTextVisible = false;
+  // tracks most recently added cube for animations
+  let newCube;
 
   // tracks answer for trivia
   let correctAnswer;
@@ -101,8 +104,9 @@ function main() {
   const trapMaterial = new THREE.MeshPhongMaterial({color: "red"})
 
   // starting cube & group for extra cubes
-  const cube = new THREE.Mesh(cubeGeometry, startMaterial)
-  scene.add(cube)
+  const startCube = new THREE.Mesh(cubeGeometry, startMaterial)
+  scene.add(startCube)
+
   let cubes = new THREE.Group();
   scene.add(cubes)
 
@@ -151,29 +155,29 @@ function main() {
   function moveForwards() {
     const forewardsVector = new THREE.Vector3(1, 0, 0)
     currentPosition.add(forewardsVector)
-    newCube()
+    createCube()
   }
 
   function moveLeft() {
     const leftVector = new THREE.Vector3(0, 0, -1)
     currentPosition.add(leftVector)
-    newCube()
+    createCube()
   }
 
   function moveRight() {
     const rightVector = new THREE.Vector3(0, 0, 1)
     currentPosition.add(rightVector)
-    newCube()
+    createCube()
   }
 
   function moveBack() {
     const backVector = new THREE.Vector3(-1, 0 , 0)
     currentPosition.add(backVector)
-    newCube()
+    createCube()
   }
 
   // creates a new position cube based on the position
-  async function newCube() {
+  async function createCube() {
     let coordString = currentPosition.toArray().toString()
     if (coordinates.includes(coordString)) {
       // avoid duplicate cubes
@@ -183,9 +187,10 @@ function main() {
       const onTrap = trapCoordinates.includes(coordString)
       const goalDistance = findDistance(goalCoordinates, currentPosition)
       const newCubeMaterial = onTrap ? trapMaterial : selectMaterial(goalDistance)
-      let newCube = new THREE.Mesh(cubeGeometry, newCubeMaterial)
-      newCube.position.set(...currentPosition.toArray())
+      newCube = new THREE.Mesh(cubeGeometry, newCubeMaterial)
+      newCube.position.set(currentPosition.x, -0.75, currentPosition.z)
       cubes.add(newCube)
+      blockRise.start()
       coordinates.push(coordString)
       // switches play state if goal or trap is reached
       if (goalDistance === 0) {
@@ -221,6 +226,12 @@ function main() {
   function movePlayer() {
     player.position.setX(currentPosition.x)
     player.position.setZ(currentPosition.z)
+
+    // scuffed input buffer
+    gamePlayState = false
+    setTimeout(() => {
+      gamePlayState = true
+    }, playerSpeed);
   }
 
   function resetPlayer() {
@@ -360,6 +371,12 @@ function main() {
 
   floatUp.start()
 
+  // block appearance
+  const blockRise = new TWEEN.Tween({y:-0.75})
+    .to({y: 0}, playerSpeed - 50)
+    .onUpdate((opts) => {
+      newCube.position.y = opts.y
+    })
 
 
 
