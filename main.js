@@ -169,17 +169,17 @@ function main() {
     newCube()
   }
 
-  // creates a new position cube based on the
+  // creates a new position cube based on the position
   async function newCube() {
     let coordString = currentPosition.toArray().toString()
     if (coordinates.includes(coordString)) {
       // avoid duplicate cubes
-      console.log("not placing")
+      // console.log("not placing")
       return
     } else {
-      let trapDistance = findDistance(trapCoordinates, currentPosition)
-      let goalDistance = findDistance(goalCoordinates, currentPosition)
-      let newCubeMaterial = trapDistance === 0 ? trapMaterial : selectMaterial(goalDistance)
+      const onTrap = trapCoordinates.includes(coordString)
+      const goalDistance = findDistance(goalCoordinates, currentPosition)
+      const newCubeMaterial = onTrap ? trapMaterial : selectMaterial(goalDistance)
       let newCube = new THREE.Mesh(cubeGeometry, newCubeMaterial)
       newCube.position.set(...currentPosition.toArray())
       cubes.add(newCube)
@@ -189,7 +189,7 @@ function main() {
         gameReset = true
         score += 1
         updateScore()
-      } else if (trapDistance === 0) {
+      } else if (onTrap) {
         gamePlayState = false
         flashTrap()
         correctAnswer = await newQuestion(formLayer)
@@ -258,16 +258,24 @@ function main() {
       distance = findDistance(goalCoordinates, originCoordinates)
     }
 
-    // setup for traps, measure against both origin and goal
-    let distanceOrigin = 0
-    let distanceGoal = 0
-    while ((distanceOrigin < 3) & (distanceGoal < 3)) {
-      console.log("generating coords for trap")
-      let x = randNum()
-      let z = randNum()
-      trapCoordinates = new THREE.Vector3(x, 0 , z)
-      distanceOrigin = findDistance(originCoordinates, trapCoordinates)
-      distanceGoal = findDistance(goalCoordinates, originCoordinates)
+    // setup for 3 traps, measure against both origin and goal
+    trapCoordinates = []
+    while (trapCoordinates.length < 3) {
+      let distanceOrigin = 0
+      let distanceGoal = 0
+      let newTrapCoordinates
+      while ((distanceOrigin < 3) & (distanceGoal < 3)) {
+        console.log("generating coords for trap")
+        let x = randNum()
+        let z = randNum()
+        newTrapCoordinates = new THREE.Vector3(x, 0 , z)
+        distanceOrigin = findDistance(originCoordinates, trapCoordinates)
+        distanceGoal = findDistance(goalCoordinates, originCoordinates)
+      }
+      const newTrapString = newTrapCoordinates.toArray().toString()
+      if (!trapCoordinates.includes(newTrapString)) {
+        trapCoordinates.push(newTrapString)
+      }
     }
     console.log(trapCoordinates)
 
