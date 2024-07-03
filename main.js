@@ -41,10 +41,11 @@ function main() {
   let gameReset;
   // tracks where the player has been
   let coordinates;
-  let currentPosition;
+  let currentPosition = new THREE.Vector3(0, 0,0 );
+  let targetPosition = new THREE.Vector3(0, 0,0 );
   let trapCoordinates;
   let trappedTextVisible = false;
-  let trapped = false
+  let trapped = false;
   // tracks most recently added cube for animations
   let newCube;
 
@@ -154,41 +155,41 @@ function main() {
   // Movement functions can be collapes into above code later, maybe
   function moveForwards() {
     const forewardsVector = new THREE.Vector3(1, 0, 0)
-    currentPosition.add(forewardsVector)
+    targetPosition.add(forewardsVector)
     createCube()
   }
 
   function moveLeft() {
     const leftVector = new THREE.Vector3(0, 0, -1)
-    currentPosition.add(leftVector)
+    targetPosition.add(leftVector)
     createCube()
   }
 
   function moveRight() {
     const rightVector = new THREE.Vector3(0, 0, 1)
-    currentPosition.add(rightVector)
+    targetPosition.add(rightVector)
     createCube()
   }
 
   function moveBack() {
     const backVector = new THREE.Vector3(-1, 0 , 0)
-    currentPosition.add(backVector)
+    targetPosition.add(backVector)
     createCube()
   }
 
   // creates a new position cube based on the position
   async function createCube() {
-    let coordString = currentPosition.toArray().toString()
+    let coordString = targetPosition.toArray().toString()
     if (coordinates.includes(coordString)) {
       // avoid duplicate cubes
       // console.log("not placing")
       return
     } else {
       const onTrap = trapCoordinates.includes(coordString)
-      const goalDistance = findDistance(goalCoordinates, currentPosition)
+      const goalDistance = findDistance(goalCoordinates, targetPosition)
       const newCubeMaterial = onTrap ? trapMaterial : selectMaterial(goalDistance)
       newCube = new THREE.Mesh(cubeGeometry, newCubeMaterial)
-      newCube.position.set(currentPosition.x, -0.75, currentPosition.z)
+      newCube.position.set(targetPosition.x, -0.75, targetPosition.z)
       cubes.add(newCube)
       blockRise.start()
       coordinates.push(coordString)
@@ -222,21 +223,29 @@ function main() {
     }
   }
 
-  // must always occur AFTER newCube (or something else that sets currentPosition) is called
+  // must always occur AFTER newCube (or something else that sets targetPosition) is called
   function movePlayer() {
-    player.position.setX(currentPosition.x)
-    player.position.setZ(currentPosition.z)
+
+    // TWEEN for movement must be here because of the way these values are stored and updated
+    const playerMovement = new TWEEN.Tween({x: currentPosition.x, z: currentPosition.z})
+    .to({x: targetPosition.x, z: targetPosition.z}, playerSpeed)
+    .onUpdate((coords) => {
+      player.position.setX(coords.x)
+      player.position.z = coords.z
+    })
+    playerMovement.start()
 
     // scuffed input buffer
     gamePlayState = false
     setTimeout(() => {
+      currentPosition.set(...targetPosition.toArray())
       gamePlayState = true
     }, playerSpeed);
   }
 
   function resetPlayer() {
-    currentPosition = new THREE.Vector3(0, 0, 0);
-    movePlayer()
+    targetPosition = new THREE.Vector3(0, 0, 0)
+    currentPosition = new THREE.Vector3(0, 0,0 )
   }
 
   function updateScore() {
@@ -301,7 +310,7 @@ function main() {
 
   // trapped message
   function flashTrap() {
-    trappedText.position.set(currentPosition.x, 3, currentPosition.z)
+    trappedText.position.set(targetPosition.x, 3, targetPosition.z)
     redTextMat.opacity = 1
     trappedText.visible = true
     trappedTextVisible = true
@@ -351,7 +360,7 @@ function main() {
     requestAnimationFrame(render);
   }
 
-  // TWEEN Animations
+  // Reused TWEEN Animations
   // player float
   const floatUp = new TWEEN.Tween({y: 1})
     .to({y: 1.5}, 1500)
@@ -372,10 +381,15 @@ function main() {
 
   floatUp.start()
 
+
+
   // block appearance
   const blockRise = new TWEEN.Tween({y:-0.75})
+    // duration must be lower than playerSpeed, or animations may not complete
+    // this could be fixed by moving this into a narrower scope? (see playerMovement)
     .to({y: 0}, playerSpeed - 50)
     .onUpdate((opts) => {
+      // newCube is updated every time a cube is created
       newCube.position.y = opts.y
     })
 
