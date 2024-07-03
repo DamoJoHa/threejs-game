@@ -9,10 +9,13 @@ Goals/Ideas
 - [ ] Reveal larger area around player (?)
 - [ ] Movement animation (probably with pauses)
 - [ ] More interesting terrain
-- [ ] More/better traps
+- [ ] Signal correct/incorrect
+- [ ] More traps
+- [ ] Better traps (allow choosing trivia category, maybe more than one question)
+- [ ] Lives/damage system
 - [ ] Better looking trivia bit (consider 3d text?)
 - [x] Figure out Three fonts
-- [x] Generate traps for player (trivia type thing? Language practice, maybe?)
+- [x] Generate traps for player (trivia type thing)
 - [x] Cube material based on proximity to goal
 - [x] Score counter (reaching goal/trivia answers)
 - [x] Change goal generation to exclude super low values (generation at origin probably soft locks)

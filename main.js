@@ -192,7 +192,7 @@ function main() {
       } else if (trapDistance === 0) {
         gamePlayState = false
         flashTrap()
-        correctAnswer = await newQuestion(form, formLayer)
+        correctAnswer = await newQuestion(formLayer)
       }
     }
   }
@@ -279,7 +279,7 @@ function main() {
 
 
   // trapped message
-  function flashTrap(message) {
+  function flashTrap() {
     trappedText.position.set(currentPosition.x, 3, currentPosition.z)
     redTextMat.opacity = 1
     trappedText.visible = true

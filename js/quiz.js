@@ -1,4 +1,4 @@
-async function newQuestion(form, formLayer) {
+async function newQuestion(formLayer) {
   const question = document.getElementById("question-text")
   const correctAnswer = randPosition()
   // console.log("correct: ", correctAnswer)
