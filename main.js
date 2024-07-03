@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as TWEEN from "@tweenjs/tween.js"
 import { FontLoader } from 'three/examples/jsm/Addons.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
@@ -30,13 +31,14 @@ function main() {
 
   // SCENE CONTENTS
 
-  // gamestate (declared here, assigned values in newGame method
+  // gamestate (declared here, assigned values in resetMap method
 
   let goalCoordinates;
   // keeps track of how keyboard inputs should be handled
   let gamePlayState;
   // tracks if the player & board need to be reset
   let gameReset;
+  // tracks where the player has been
   let coordinates;
   let currentPosition;
   let trapCoordinates;
@@ -81,6 +83,7 @@ function main() {
   const playerMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 20, 144)", emissive: "rgb(100, 12, 12)"})
 
   const player = new THREE.Mesh(sphereGeometry, playerMaterial)
+  player.position.set(0, 1, 0)
   scene.add(player)
 
   // terrain cubes
@@ -118,7 +121,7 @@ function main() {
     console.log(e.keyCode)
     if (gameReset) {
       // reset game if game is in reset state
-      newGame()
+      resetMap()
       return
     } else if (gamePlayState) {
       switch(e.keyCode) {
@@ -239,7 +242,7 @@ function main() {
     return Math.sqrt((locA.x - locB.x)**2 + (locA.z - locB.z)**2)
   }
 
-  function newGame() {
+  function resetMap() {
     resetPlayer()
     coordinates = []
     coordinates.push(currentPosition.toArray().toString())
@@ -258,9 +261,9 @@ function main() {
       distance = findDistance(goalCoordinates, originCoordinates)
     }
 
-    // setup for 3 traps, measure against both origin and goal
+    // setup for n traps, measure against both origin and goal
     trapCoordinates = []
-    while (trapCoordinates.length < 3) {
+    while (trapCoordinates.length < 5) {
       let distanceOrigin = 0
       let distanceGoal = 0
       let newTrapCoordinates
@@ -277,9 +280,7 @@ function main() {
         trapCoordinates.push(newTrapString)
       }
     }
-    console.log(trapCoordinates)
 
-    // TODO generate traps
     gamePlayState = true
     gameReset = false
   }
@@ -300,7 +301,6 @@ function main() {
 
 
   // RENDER LOGIC
-
   function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
     const width = canvas.clientWidth;
@@ -314,6 +314,7 @@ function main() {
 
   // Resize and animate function + game logic
   function render(time) {
+    TWEEN.update(time)
     const seconds = time / 1000;
 
     if (resizeRendererToDisplaySize(renderer)) {
@@ -323,7 +324,6 @@ function main() {
     }
 
     // player float
-    player.position.setY(.25 * Math.sin(seconds) + 1)
 
     // rising "Trapped!" message
     if (trappedTextVisible) {
@@ -339,6 +339,31 @@ function main() {
     requestAnimationFrame(render);
   }
 
+  // TWEEN Animations
+  // player float
+  const floatUp = new TWEEN.Tween({y: 1})
+    .to({y: 1.5}, 1500)
+    .onUpdate((coords) => {
+      player.position.y = coords.y
+    })
+    .easing(TWEEN.Easing.Sinusoidal.InOut)
+
+  const floatDown = new TWEEN.Tween({y: 1.5})
+    .to({y: 1}, 1500)
+    .onUpdate((coords) => {
+      player.position.y = coords.y
+    })
+    .easing(TWEEN.Easing.Sinusoidal.InOut)
+    .chain(floatUp)
+
+  floatUp.chain(floatDown)
+
+  floatUp.start()
+
+
+
+
+
    // handle submission of form
    form.addEventListener("submit", event => {
     event.preventDefault();
@@ -351,12 +376,13 @@ function main() {
       gamePlayState = true
     } else {
       console.log("incorrect")
+      // Lose lives?  Reset Score?
       gameReset = true
     }
-
+    canvas.focus()
   })
 
-  newGame()
+  resetMap()
   requestAnimationFrame(render);
 
 }
