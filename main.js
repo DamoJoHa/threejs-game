@@ -44,6 +44,7 @@ function main() {
   let currentPosition;
   let trapCoordinates;
   let trappedTextVisible = false;
+  let trapped = false
   // tracks most recently added cube for animations
   let newCube;
 
@@ -122,12 +123,11 @@ function main() {
 
   // movement logic using wasd input
   canvas.addEventListener("keydown", (e) =>{
-    console.log(e.keyCode)
     if (gameReset) {
       // reset game if game is in reset state
       resetMap()
       return
-    } else if (gamePlayState) {
+    } else if (gamePlayState & !trapped) {
       switch(e.keyCode) {
         case 87:
           console.log("moving forward")
@@ -198,7 +198,7 @@ function main() {
         score += 1
         updateScore()
       } else if (onTrap) {
-        gamePlayState = false
+        trapped = true
         flashTrap()
         correctAnswer = await newQuestion(formLayer)
       }
@@ -291,6 +291,7 @@ function main() {
         trapCoordinates.push(newTrapString)
       }
     }
+    console.log(trapCoordinates)
 
     gamePlayState = true
     gameReset = false
@@ -390,11 +391,12 @@ function main() {
     if (parseInt(obj.answer) === correctAnswer) {
       console.log("correct")
       score += 1
-      gamePlayState = true
+      trapped = false
     } else {
       console.log("incorrect")
       // Lose lives?  Reset Score?
       gameReset = true
+      trapped = false
     }
     canvas.focus()
   })
