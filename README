@@ -2,18 +2,20 @@ Cube Game (?)
 
 I'm using this repo as a bit of a playground for three.js, and for thinking in three dimensions.
 
-Currently, the game just consists of repeatedly seeking out the goal, using wasd for movement.  Once the goal is reached, any key will reset.
+Currently, the game just consists of repeatedly seeking out the goal, using wasd for movement.  Once the goal is reached, any key will reset.  Traps require answering trivia, and failing a trap resets the player.
 
 Goals/Ideas
 
 - [ ] Reveal larger area around player (?)
-- [ ] Movement animation (probably with pauses)
 - [ ] More interesting terrain
 - [ ] Signal correct/incorrect
-- [ ] More traps
 - [ ] Better traps (allow choosing trivia category, maybe more than one question)
 - [ ] Lives/damage system
 - [ ] Better looking trivia bit (consider 3d text?)
+- [ ] add walls
+- [ ] smoother animations somehow?
+- [x] Movement animation (probably with pauses)
+- [x] More traps
 - [x] Figure out Three fonts
 - [x] Generate traps for player (trivia type thing)
 - [x] Cube material based on proximity to goal

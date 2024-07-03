@@ -1,8 +1,10 @@
 import * as THREE from 'three';
+import * as TWEEN from "@tweenjs/tween.js"
 import { FontLoader } from 'three/examples/jsm/Addons.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
 import newQuestion from './js/quiz.js'
+import { PI } from 'three/examples/jsm/nodes/Nodes.js';
 // import GUI from 'lil-gui'
 // import { sin } from 'three/examples/jsm/nodes/Nodes.js';
 
@@ -24,23 +26,28 @@ function main() {
   camera.position.set(-10, 10, 0)
   camera.up.set(1, 0, 0)
   camera.lookAt(0, 0, 0)
-
+  const playerSpeed = 500
   const scene = new THREE.Scene();
 
 
   // SCENE CONTENTS
 
-  // gamestate (declared here, assigned values in newGame method
+  // gamestate (declared here, assigned values in resetMap method
 
   let goalCoordinates;
   // keeps track of how keyboard inputs should be handled
   let gamePlayState;
   // tracks if the player & board need to be reset
   let gameReset;
+  // tracks where the player has been
   let coordinates;
-  let currentPosition;
+  let currentPosition = new THREE.Vector3(0, 0,0 );
+  let targetPosition = new THREE.Vector3(0, 0,0 );
   let trapCoordinates;
   let trappedTextVisible = false;
+  let trapped = false;
+  // tracks most recently added cube for animations
+  let newCube;
 
   // tracks answer for trivia
   let correctAnswer;
@@ -81,6 +88,7 @@ function main() {
   const playerMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 20, 144)", emissive: "rgb(100, 12, 12)"})
 
   const player = new THREE.Mesh(sphereGeometry, playerMaterial)
+  player.position.set(0, 1, 0)
   scene.add(player)
 
   // terrain cubes
@@ -98,8 +106,9 @@ function main() {
   const trapMaterial = new THREE.MeshPhongMaterial({color: "red"})
 
   // starting cube & group for extra cubes
-  const cube = new THREE.Mesh(cubeGeometry, startMaterial)
-  scene.add(cube)
+  const startCube = new THREE.Mesh(cubeGeometry, startMaterial)
+  scene.add(startCube)
+
   let cubes = new THREE.Group();
   scene.add(cubes)
 
@@ -115,12 +124,11 @@ function main() {
 
   // movement logic using wasd input
   canvas.addEventListener("keydown", (e) =>{
-    console.log(e.keyCode)
     if (gameReset) {
       // reset game if game is in reset state
-      newGame()
+      resetMap()
       return
-    } else if (gamePlayState) {
+    } else if (gamePlayState & !trapped) {
       switch(e.keyCode) {
         case 87:
           console.log("moving forward")
@@ -147,42 +155,43 @@ function main() {
   // Movement functions can be collapes into above code later, maybe
   function moveForwards() {
     const forewardsVector = new THREE.Vector3(1, 0, 0)
-    currentPosition.add(forewardsVector)
-    newCube()
+    targetPosition.add(forewardsVector)
+    createCube()
   }
 
   function moveLeft() {
     const leftVector = new THREE.Vector3(0, 0, -1)
-    currentPosition.add(leftVector)
-    newCube()
+    targetPosition.add(leftVector)
+    createCube()
   }
 
   function moveRight() {
     const rightVector = new THREE.Vector3(0, 0, 1)
-    currentPosition.add(rightVector)
-    newCube()
+    targetPosition.add(rightVector)
+    createCube()
   }
 
   function moveBack() {
     const backVector = new THREE.Vector3(-1, 0 , 0)
-    currentPosition.add(backVector)
-    newCube()
+    targetPosition.add(backVector)
+    createCube()
   }
 
   // creates a new position cube based on the position
-  async function newCube() {
-    let coordString = currentPosition.toArray().toString()
+  async function createCube() {
+    let coordString = targetPosition.toArray().toString()
     if (coordinates.includes(coordString)) {
       // avoid duplicate cubes
       // console.log("not placing")
       return
     } else {
       const onTrap = trapCoordinates.includes(coordString)
-      const goalDistance = findDistance(goalCoordinates, currentPosition)
+      const goalDistance = findDistance(goalCoordinates, targetPosition)
       const newCubeMaterial = onTrap ? trapMaterial : selectMaterial(goalDistance)
-      let newCube = new THREE.Mesh(cubeGeometry, newCubeMaterial)
-      newCube.position.set(...currentPosition.toArray())
+      newCube = new THREE.Mesh(cubeGeometry, newCubeMaterial)
+      newCube.position.set(targetPosition.x, -0.75, targetPosition.z)
       cubes.add(newCube)
+      blockRise.start()
       coordinates.push(coordString)
       // switches play state if goal or trap is reached
       if (goalDistance === 0) {
@@ -190,7 +199,7 @@ function main() {
         score += 1
         updateScore()
       } else if (onTrap) {
-        gamePlayState = false
+        trapped = true
         flashTrap()
         correctAnswer = await newQuestion(formLayer)
       }
@@ -214,15 +223,29 @@ function main() {
     }
   }
 
-  // must always occur AFTER newCube (or something else that sets currentPosition) is called
+  // must always occur AFTER newCube (or something else that sets targetPosition) is called
   function movePlayer() {
-    player.position.setX(currentPosition.x)
-    player.position.setZ(currentPosition.z)
+
+    // TWEEN for movement must be here because of the way these values are stored and updated
+    const playerMovement = new TWEEN.Tween({x: currentPosition.x, z: currentPosition.z})
+    .to({x: targetPosition.x, z: targetPosition.z}, playerSpeed)
+    .onUpdate((coords) => {
+      player.position.setX(coords.x)
+      player.position.z = coords.z
+    })
+    playerMovement.start()
+
+    // scuffed input buffer
+    gamePlayState = false
+    setTimeout(() => {
+      currentPosition.set(...targetPosition.toArray())
+      gamePlayState = true
+    }, playerSpeed);
   }
 
   function resetPlayer() {
-    currentPosition = new THREE.Vector3(0, 0, 0);
-    movePlayer()
+    targetPosition = new THREE.Vector3(0, 0, 0)
+    currentPosition = new THREE.Vector3(0, 0,0 )
   }
 
   function updateScore() {
@@ -239,7 +262,7 @@ function main() {
     return Math.sqrt((locA.x - locB.x)**2 + (locA.z - locB.z)**2)
   }
 
-  function newGame() {
+  function resetMap() {
     resetPlayer()
     coordinates = []
     coordinates.push(currentPosition.toArray().toString())
@@ -258,9 +281,9 @@ function main() {
       distance = findDistance(goalCoordinates, originCoordinates)
     }
 
-    // setup for 3 traps, measure against both origin and goal
+    // setup for n traps, measure against both origin and goal
     trapCoordinates = []
-    while (trapCoordinates.length < 3) {
+    while (trapCoordinates.length < 5) {
       let distanceOrigin = 0
       let distanceGoal = 0
       let newTrapCoordinates
@@ -279,7 +302,6 @@ function main() {
     }
     console.log(trapCoordinates)
 
-    // TODO generate traps
     gamePlayState = true
     gameReset = false
   }
@@ -288,7 +310,7 @@ function main() {
 
   // trapped message
   function flashTrap() {
-    trappedText.position.set(currentPosition.x, 3, currentPosition.z)
+    trappedText.position.set(targetPosition.x, 3, targetPosition.z)
     redTextMat.opacity = 1
     trappedText.visible = true
     trappedTextVisible = true
@@ -300,7 +322,6 @@ function main() {
 
 
   // RENDER LOGIC
-
   function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
     const width = canvas.clientWidth;
@@ -314,6 +335,7 @@ function main() {
 
   // Resize and animate function + game logic
   function render(time) {
+    TWEEN.update(time)
     const seconds = time / 1000;
 
     if (resizeRendererToDisplaySize(renderer)) {
@@ -323,7 +345,6 @@ function main() {
     }
 
     // player float
-    player.position.setY(.25 * Math.sin(seconds) + 1)
 
     // rising "Trapped!" message
     if (trappedTextVisible) {
@@ -339,6 +360,42 @@ function main() {
     requestAnimationFrame(render);
   }
 
+  // Reused TWEEN Animations
+  // player float
+  const floatUp = new TWEEN.Tween({y: 1})
+    .to({y: 1.5}, 1500)
+    .onUpdate((coords) => {
+      player.position.y = coords.y
+    })
+    .easing(TWEEN.Easing.Sinusoidal.InOut)
+
+  const floatDown = new TWEEN.Tween({y: 1.5})
+    .to({y: 1}, 1500)
+    .onUpdate((coords) => {
+      player.position.y = coords.y
+    })
+    .easing(TWEEN.Easing.Sinusoidal.InOut)
+    .chain(floatUp)
+
+  floatUp.chain(floatDown)
+
+  floatUp.start()
+
+
+
+  // block appearance
+  const blockRise = new TWEEN.Tween({y:-0.75})
+    // duration must be lower than playerSpeed, or animations may not complete
+    // this could be fixed by moving this into a narrower scope? (see playerMovement)
+    .to({y: 0}, playerSpeed - 50)
+    .onUpdate((opts) => {
+      // newCube is updated every time a cube is created
+      newCube.position.y = opts.y
+    })
+
+
+
+
    // handle submission of form
    form.addEventListener("submit", event => {
     event.preventDefault();
@@ -348,15 +405,17 @@ function main() {
     if (parseInt(obj.answer) === correctAnswer) {
       console.log("correct")
       score += 1
-      gamePlayState = true
+      trapped = false
     } else {
       console.log("incorrect")
+      // Lose lives?  Reset Score?
       gameReset = true
+      trapped = false
     }
-
+    canvas.focus()
   })
 
-  newGame()
+  resetMap()
   requestAnimationFrame(render);
 
 }
