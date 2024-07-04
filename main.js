@@ -247,8 +247,8 @@ function main() {
   }
 
   function resetPlayer() {
-    targetPosition = new THREE.Vector3(0, 0, 0)
-    currentPosition = new THREE.Vector3(0, 0,0 )
+    targetPosition.set(0, 0, 0)
+    movePlayer()
   }
 
   function updateScore() {
