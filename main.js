@@ -2,11 +2,9 @@ import * as THREE from 'three';
 import * as TWEEN from "@tweenjs/tween.js"
 import { FontLoader } from 'three/examples/jsm/Addons.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import newQuestion from './js/quiz.js'
-import { PI } from 'three/examples/jsm/nodes/Nodes.js';
-// import GUI from 'lil-gui'
-// import { sin } from 'three/examples/jsm/nodes/Nodes.js';
 
 
 function main() {
@@ -23,9 +21,14 @@ function main() {
   const near = 0.1;
   const far = 60;
   const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-  camera.position.set(-10, 10, 0)
+
+  camera.position.set(-5, 10, 0)
   camera.up.set(1, 0, 0)
   camera.lookAt(0, 0, 0)
+
+  const controls = new OrbitControls( camera, renderer.domElement );
+  controls.update()
+
   const playerSpeed = 500
   const scene = new THREE.Scene();
 
@@ -345,8 +348,8 @@ function main() {
     }
 
     // camera
-    camera.position.set(player.position.x - 10, 10, player.position.z)
-    camera.lookAt(player.position.x, 0, player.position.z)
+    controls.target.set(player.position.x, 0, player.position.z)
+    controls.update()
 
     // rising "Trapped!" message
     if (trappedTextVisible) {
