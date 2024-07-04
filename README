@@ -14,6 +14,7 @@ Goals/Ideas
 - [ ] Better looking trivia bit (consider 3d text?)
 - [ ] add walls
 - [ ] smoother animations somehow?
+- [ ] camera follows player (+ camera controls?)
 - [x] Movement animation (probably with pauses)
 - [x] More traps
 - [x] Figure out Three fonts
