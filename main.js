@@ -344,7 +344,9 @@ function main() {
       camera.updateProjectionMatrix();
     }
 
-    // player float
+    // camera
+    camera.position.set(player.position.x - 10, 10, player.position.z)
+    camera.lookAt(player.position.x, 0, player.position.z)
 
     // rising "Trapped!" message
     if (trappedTextVisible) {
