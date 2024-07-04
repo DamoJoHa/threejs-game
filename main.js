@@ -3,6 +3,8 @@ import * as TWEEN from "@tweenjs/tween.js"
 import { FontLoader } from 'three/examples/jsm/Addons.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
 
 import newQuestion from './js/quiz.js'
 
@@ -95,6 +97,12 @@ function main() {
   scene.add(player)
 
   // terrain cubes
+
+  const loader = new GLTFLoader();
+
+
+
+
   // note: consider batched mesh if performance becomes a concern
   const cubeLength = 1;
   const cubeGeometry = new THREE.BoxGeometry(cubeLength, cubeLength, cubeLength)
@@ -195,6 +203,13 @@ function main() {
       newCube.position.set(targetPosition.x, -0.75, targetPosition.z)
       cubes.add(newCube)
       blockRise.start()
+      // This is a surprisingly seamless way to load external block resources
+      // loader.load( 'models/grass.glb', function ( gltf ) {
+      //   newCube = gltf.scene
+      //   newCube.position.set(targetPosition.x, -0.75, targetPosition.z)
+      //   cubes.add(newCube)
+      //   blockRise.start()
+      // })
       coordinates.push(coordString)
       // switches play state if goal or trap is reached
       if (goalDistance === 0) {

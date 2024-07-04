@@ -7,14 +7,14 @@ Currently, the game just consists of repeatedly seeking out the goal, using wasd
 Goals/Ideas
 
 - [ ] Reveal larger area around player (?)
-- [ ] More interesting terrain
+- [ ] More interesting terrain/player models
 - [ ] Signal correct/incorrect
 - [ ] Better traps (allow choosing trivia category, maybe more than one question)
 - [ ] Lives/damage system
 - [ ] Better looking trivia bit (consider 3d text?)
 - [ ] add walls
 - [ ] smoother animations somehow?
-- [ ] camera follows player (+ camera controls?)
+- [x] camera follows player (+ camera controls?)
 - [x] Movement animation (probably with pauses)
 - [x] More traps
 - [x] Figure out Three fonts
