@@ -198,19 +198,30 @@ function main() {
     } else {
       const onTrap = trapCoordinates.includes(coordString)
       const goalDistance = findDistance(goalCoordinates, targetPosition)
-      const newCubeMaterial = onTrap ? trapMaterial : selectMaterial(goalDistance)
-      newCube = new THREE.Mesh(cubeGeometry, newCubeMaterial)
-      newCube.position.set(targetPosition.x, -0.75, targetPosition.z)
-      cubes.add(newCube)
-      blockRise.start()
+
+      // const newCubeMaterial = onTrap ? trapMaterial : selectMaterial(goalDistance)
+      // newCube = new THREE.Mesh(cubeGeometry, newCubeMaterial)
+      // newCube.position.set(targetPosition.x, -0.75, targetPosition.z)
+      // cubes.add(newCube)
+      // blockRise.start()
+
       // This is a surprisingly seamless way to load external block resources
-      // loader.load( 'models/grass.glb', function ( gltf ) {
-      //   newCube = gltf.scene
-      //   newCube.position.set(targetPosition.x, -0.75, targetPosition.z)
-      //   cubes.add(newCube)
-      //   blockRise.start()
-      // })
+
+      const num = Math.abs(randNum())
+      console.log(num, num % 2 == 0)
+      const model = num % 2 == 0 ? "grass" : "grassA"
+      const rotation = pickRotation(num)
+      console.log(rotation)
+      loader.load( `models/${model}.glb`, function ( gltf ) {
+        newCube = gltf.scene
+        newCube.position.set(targetPosition.x, -0.75, targetPosition.z)
+        newCube.rotateY(rotation)
+        cubes.add(newCube)
+        blockRise.start()
+      })
       coordinates.push(coordString)
+
+
       // switches play state if goal or trap is reached
       if (goalDistance === 0) {
         gameReset = true
@@ -222,6 +233,14 @@ function main() {
         correctAnswer = await newQuestion(formLayer)
       }
     }
+  }
+
+  // cube rotation based on random num
+  function pickRotation(num) {
+    if (num < 3) return 0
+    if (num < 6) return Math.PI / 2
+    if (num < 9) return Math.PI
+    return Math.PI * (3 / 2)
   }
 
 
