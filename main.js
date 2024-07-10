@@ -108,13 +108,13 @@ function main() {
   const cubeGeometry = new THREE.BoxGeometry(cubeLength, cubeLength, cubeLength)
 
   // Cube materials
-  const defaultMaterial = new THREE.MeshPhongMaterial({color: "rgb(237, 242, 251)"})
-  const firstRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(171, 196, 255)"})
-  const secondRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(193, 211, 254)"})
-  const thirdRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(215, 227, 252)"})
-  const goalMaterial = new THREE.MeshPhongMaterial({color: "rgb(255,191,0)}"})
+  // const defaultMaterial = new THREE.MeshPhongMaterial({color: "rgb(237, 242, 251)"})
+  // const firstRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(171, 196, 255)"})
+  // const secondRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(193, 211, 254)"})
+  // const thirdRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(215, 227, 252)"})
+  // const goalMaterial = new THREE.MeshPhongMaterial({color: "rgb(255,191,0)}"})
   const startMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 150, 30)"})
-  const trapMaterial = new THREE.MeshPhongMaterial({color: "red"})
+  // const trapMaterial = new THREE.MeshPhongMaterial({color: "red"})
 
   // starting cube & group for extra cubes
   const startCube = new THREE.Mesh(cubeGeometry, startMaterial)
@@ -208,10 +208,12 @@ function main() {
       // This is a surprisingly seamless way to load external block resources
 
       const num = Math.abs(randNum())
-      console.log(num, num % 2 == 0)
-      const model = num % 2 == 0 ? "grass" : "grassA"
+      const selection = num % 3
+      const model = goalDistance < 4 && num < 5 ? "goal" :
+        selection == 0 ? "grass" :
+        selection == 1 ? "grassA" : "grassB"
+
       const rotation = pickRotation(num)
-      console.log(rotation)
       loader.load( `models/${model}.glb`, function ( gltf ) {
         newCube = gltf.scene
         newCube.position.set(targetPosition.x, -0.75, targetPosition.z)
@@ -229,6 +231,7 @@ function main() {
         updateScore()
       } else if (onTrap) {
         trapped = true
+        cameraFocus()
         flashTrap()
         correctAnswer = await newQuestion(formLayer)
       }
@@ -265,11 +268,11 @@ function main() {
 
     // TWEEN for movement must be here because of the way these values are stored and updated
     const playerMovement = new TWEEN.Tween({x: currentPosition.x, z: currentPosition.z})
-    .to({x: targetPosition.x, z: targetPosition.z}, playerSpeed)
-    .onUpdate((coords) => {
-      player.position.setX(coords.x)
-      player.position.z = coords.z
-    })
+      .to({x: targetPosition.x, z: targetPosition.z}, playerSpeed)
+      .onUpdate((coords) => {
+        player.position.setX(coords.x)
+        player.position.z = coords.z
+      })
     playerMovement.start()
 
     // scuffed input buffer
@@ -344,6 +347,17 @@ function main() {
   }
 
 
+  // focus camera on player (camera always looks at player, so this works fine)
+  function cameraFocus() {
+    let cameraPath = new TWEEN.Tween({x: camera.position.x, y: camera.position.y, z: camera.position.z})
+    .to({x: currentPosition.x - 10, y: 10, z: currentPosition.z}, 1000)
+    .onUpdate((vals) => {
+      camera.position.set(vals.x, vals.y, vals.z)
+    })
+
+  cameraPath.start()
+  }
+
 
   // trapped message
   function flashTrap() {
@@ -355,6 +369,7 @@ function main() {
       trappedText.visible = false
       trappedTextVisible = false
     }, 3000);
+
   }
 
 
