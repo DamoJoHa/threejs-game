@@ -16,6 +16,7 @@
   "dependencies": {
     "@tweenjs/tween.js": "^23.1.2",
     "node": "^20.13.1",
+    "stats.js": "^0.17.0",
     "three": "^0.164.1"
   }
 }

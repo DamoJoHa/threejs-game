@@ -4,12 +4,17 @@ import { FontLoader } from 'three/examples/jsm/Addons.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
+import Stats from "stats.js"
 
 import newQuestion from './js/quiz.js'
 
 
 function main() {
+  // Stats tracker
+  const stats = new Stats()
+  stats.showPanel(0)
+  document.body.appendChild(stats.dom)
+
   // SETUP
   const canvas = document.querySelector("#c")
   const renderer = new THREE.WebGLRenderer({antialias: true, canvas})
@@ -46,12 +51,12 @@ function main() {
   let gameReset;
   // tracks where the player has been
   let coordinates;
-  let currentPosition = new THREE.Vector3(0, 0,0 );
-  let targetPosition = new THREE.Vector3(0, 0,0 );
+  let currentPosition = new THREE.Vector3(0, 0, 0);
+  let targetPosition = new THREE.Vector3(0, 0, 0);
   let trapCoordinates;
   let trappedTextVisible = false;
   let trapped = false;
-  // tracks most recently added cube for animations
+  // tracks most recently added cube for tween animations
   let newCube;
 
   // tracks answer for trivia
@@ -113,8 +118,8 @@ function main() {
   // const secondRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(193, 211, 254)"})
   // const thirdRingMaterial = new THREE.MeshPhongMaterial({color: "rgb(215, 227, 252)"})
   // const goalMaterial = new THREE.MeshPhongMaterial({color: "rgb(255,191,0)}"})
-  const startMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 150, 30)"})
   // const trapMaterial = new THREE.MeshPhongMaterial({color: "red"})
+  const startMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 150, 30)"})
 
   // starting cube & group for extra cubes
   const startCube = new THREE.Mesh(cubeGeometry, startMaterial)
@@ -122,6 +127,8 @@ function main() {
 
   let cubes = new THREE.Group();
   scene.add(cubes)
+
+
 
 
   // main light
@@ -142,22 +149,23 @@ function main() {
     } else if (gamePlayState & !trapped) {
       switch(e.keyCode) {
         case 87:
-          console.log("moving forward")
+          // console.log("moving forward")
           moveForwards()
           break
         case 65:
-          console.log("moving left")
+          // console.log("moving left")
           moveLeft()
           break
         case 68:
-          console.log("moving right")
+          // console.log("moving right")
           moveRight()
           break
         case 83:
-          console.log("moving back")
+          // console.log("moving back")
           moveBack()
           break
       }
+      createCube()
       movePlayer()
     }
   })
@@ -167,25 +175,21 @@ function main() {
   function moveForwards() {
     const forewardsVector = new THREE.Vector3(1, 0, 0)
     targetPosition.add(forewardsVector)
-    createCube()
   }
 
   function moveLeft() {
     const leftVector = new THREE.Vector3(0, 0, -1)
     targetPosition.add(leftVector)
-    createCube()
   }
 
   function moveRight() {
     const rightVector = new THREE.Vector3(0, 0, 1)
     targetPosition.add(rightVector)
-    createCube()
   }
 
   function moveBack() {
     const backVector = new THREE.Vector3(-1, 0 , 0)
     targetPosition.add(backVector)
-    createCube()
   }
 
   // creates a new position cube based on the position
@@ -226,6 +230,7 @@ function main() {
 
       // switches play state if goal or trap is reached
       if (goalDistance === 0) {
+        showFlag()
         gameReset = true
         score += 1
         updateScore()
@@ -247,45 +252,60 @@ function main() {
   }
 
 
-  // Returns cube material based on distance from goal
-  function selectMaterial(distance) {
-    switch(Math.floor(distance)) {
-      case 0:
-        return goalMaterial
-      case 1:
-        return firstRingMaterial
-      case 2:
-        return secondRingMaterial
-      case 3:
-        return thirdRingMaterial
-      default:
-        return defaultMaterial
-    }
-  }
+  // Returns cube material based on distance from goal (deprecated with external models)
+  // function selectMaterial(distance) {
+  //   switch(Math.floor(distance)) {
+  //     case 0:
+  //       return goalMaterial
+  //     case 1:
+  //       return firstRingMaterial
+  //     case 2:
+  //       return secondRingMaterial
+  //     case 3:
+  //       return thirdRingMaterial
+  //     default:
+  //       return defaultMaterial
+  //   }
+  // }
 
   // must always occur AFTER newCube (or something else that sets targetPosition) is called
   function movePlayer() {
+    gamePlayState = false
 
     // TWEEN for movement must be here because of the way these values are stored and updated
+    // okay, I can change this by setting dynamic to true, I think, though I don't see any real point to it
     const playerMovement = new TWEEN.Tween({x: currentPosition.x, z: currentPosition.z})
       .to({x: targetPosition.x, z: targetPosition.z}, playerSpeed)
       .onUpdate((coords) => {
         player.position.setX(coords.x)
-        player.position.z = coords.z
+        player.position.setZ(coords.z)
+      })
+      .onComplete(() => {
+        currentPosition.set(...targetPosition.toArray())
+        gamePlayState = true
       })
     playerMovement.start()
-
-    // scuffed input buffer
-    gamePlayState = false
-    setTimeout(() => {
-      currentPosition.set(...targetPosition.toArray())
-      gamePlayState = true
-    }, playerSpeed);
   }
 
   function resetPlayer() {
     targetPosition.set(0, 0, 0)
-    movePlayer()
+    gamePlayState = false
+
+    const playerReset = new TWEEN.Tween({x: currentPosition.x, z: currentPosition.z})
+      .to({x: targetPosition.x, z: targetPosition.z}, playerSpeed)
+      .onUpdate((coords) => {
+        player.position.setX(coords.x)
+        player.position.setZ(coords.z)
+      })
+      .onComplete(() => {
+        //this should input buffer, i think?
+        currentPosition.set(...targetPosition.toArray())
+        coordinates = []
+        coordinates.push(currentPosition.toArray().toString())
+        gamePlayState = true
+      })
+    playerReset.start()
+
   }
 
   function updateScore() {
@@ -303,13 +323,9 @@ function main() {
   }
 
   function resetMap() {
+    gameReset = false
     resetPlayer()
-    coordinates = []
-    coordinates.push(currentPosition.toArray().toString())
-
-    // reset cubes
     cubes.clear()
-
 
     // setup goal coords at least a few blocks away
     let distance = 0
@@ -320,6 +336,7 @@ function main() {
       goalCoordinates = new THREE.Vector3(x, 0 , z)
       distance = findDistance(goalCoordinates, originCoordinates)
     }
+    console.log(goalCoordinates)
 
     // setup for n traps, measure against both origin and goal
     trapCoordinates = []
@@ -341,9 +358,6 @@ function main() {
       }
     }
     console.log(trapCoordinates)
-
-    gamePlayState = true
-    gameReset = false
   }
 
 
@@ -369,7 +383,21 @@ function main() {
       trappedText.visible = false
       trappedTextVisible = false
     }, 3000);
+  }
 
+  function showFlag() {
+    // victory flag
+    let victoryFlag
+    loader.load( `models/flag.glb`, function ( gltf ){
+      victoryFlag = gltf.scene
+      victoryFlag.position.setX(targetPosition.x)
+      victoryFlag.position.setY(targetPosition.y)
+      victoryFlag.position.setZ(targetPosition.z)
+
+      cubes.add(victoryFlag)
+    })
+
+    // TODO victory flag animation with tween
   }
 
 
@@ -387,6 +415,7 @@ function main() {
 
   // Resize and animate function + game logic
   function render(time) {
+    stats.begin()
     TWEEN.update(time)
     const seconds = time / 1000;
 
@@ -411,6 +440,7 @@ function main() {
 
     renderer.render(scene, camera);
 
+    stats.end()
     requestAnimationFrame(render);
   }
 
@@ -422,16 +452,8 @@ function main() {
       player.position.y = coords.y
     })
     .easing(TWEEN.Easing.Sinusoidal.InOut)
-
-  const floatDown = new TWEEN.Tween({y: 1.5})
-    .to({y: 1}, 1500)
-    .onUpdate((coords) => {
-      player.position.y = coords.y
-    })
-    .easing(TWEEN.Easing.Sinusoidal.InOut)
-    .chain(floatUp)
-
-  floatUp.chain(floatDown)
+    .repeat(Infinity)
+    .yoyo(true)
 
   floatUp.start()
 
@@ -444,7 +466,7 @@ function main() {
     .to({y: 0}, playerSpeed - 50)
     .onUpdate((opts) => {
       // newCube is updated every time a cube is created
-      newCube.position.y = opts.y
+      newCube.position.setY(opts.y)
     })
 
 
