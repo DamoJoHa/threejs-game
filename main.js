@@ -23,6 +23,9 @@ function main() {
   const formLayer = document.getElementById("question-layer")
 
 
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
   const fov = 75;
   const aspect = 2;
   const near = 0.1;
@@ -56,8 +59,6 @@ function main() {
   let trapCoordinates;
   let trappedTextVisible = false;
   let trapped = false;
-  // tracks most recently added cube for tween animations
-  let newCube;
 
   // tracks answer for trivia
   let correctAnswer;
@@ -95,20 +96,17 @@ function main() {
   const sphereWSegs = 12;
   const sphereHSegs = 12;
   const sphereGeometry = new THREE.SphereGeometry(sphereRad, sphereWSegs, sphereHSegs)
-  const playerMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 20, 144)", emissive: "rgb(100, 12, 12)"})
+  const playerMaterial = new THREE.MeshPhongMaterial({color: "rgb(0, 20, 144)"})
 
   const player = new THREE.Mesh(sphereGeometry, playerMaterial)
   player.position.set(0, 1, 0)
+  player.castShadow = true
   scene.add(player)
 
   // terrain cubes
 
   const loader = new GLTFLoader();
 
-
-
-
-  // note: consider batched mesh if performance becomes a concern
   const cubeLength = 1;
   const cubeGeometry = new THREE.BoxGeometry(cubeLength, cubeLength, cubeLength)
 
@@ -123,6 +121,8 @@ function main() {
 
   // starting cube & group for extra cubes
   const startCube = new THREE.Mesh(cubeGeometry, startMaterial)
+  startCube.castShadow = true
+  startCube.receiveShadow = true
   scene.add(startCube)
 
   let cubes = new THREE.Group();
@@ -131,13 +131,19 @@ function main() {
 
 
 
+
+
   // main light
-  const light = new THREE.PointLight(0x404040, 40, 0, 0)
-  light.position.set(0, 10, 0)
+  const light = new THREE.DirectionalLight(0x404040, 30)
+  light.position.set(-10, 30, 0)
+  light.castShadow = true
+  light.shadow.bias = -0.00005
+  light.target = player
   scene.add(light)
 
   // fill light
   const fill = new THREE.AmbientLight(0x404040, 20)
+  fill.intensity = 5
   scene.add(fill)
 
   // movement logic using wasd input
@@ -229,6 +235,14 @@ function main() {
         cube = gltf.scene
         cube.position.set(targetPosition.x, -0.75, targetPosition.z)
         cube.rotateY(rotation)
+
+        cube.traverse((obj) => {
+          if (obj.isObject3D) {
+            obj.receiveShadow = true
+            obj.castShadow = true
+          }
+        })
+
         cubes.add(cube)
         blockRise.start()
       })
@@ -397,10 +411,15 @@ function main() {
     let victoryFlag
     loader.load( `models/flag.glb`, function ( gltf ){
       victoryFlag = gltf.scene
-      victoryFlag.position.setX(targetPosition.x)
+      victoryFlag.position.setX(targetPosition.x + 0.25)
       victoryFlag.position.setY(targetPosition.y)
-      victoryFlag.position.setZ(targetPosition.z)
-
+      victoryFlag.position.setZ(targetPosition.z + 0.25)
+      victoryFlag.rotateY( - Math.PI / 2)
+      victoryFlag.traverse((obj) => {
+        if (obj.isObject3D) {
+          obj.castShadow = true
+        }
+      })
       cubes.add(victoryFlag)
     })
 
