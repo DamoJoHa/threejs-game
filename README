@@ -8,13 +8,14 @@ Goals/Ideas
 
 - [ ] Reveal larger area around player (?)
 - [ ] More interesting terrain/player models
-- [ ] Signal correct/incorrect
-- [ ] Better traps (allow choosing trivia category, maybe more than one question)
+- [ ] Signal correct/incorrect answers (please actually do this, future Damian)
+- [ ] Better traps (allow choosing trivia category, maybe more than one question), rewards for traps?
 - [ ] Lives/damage system
 - [ ] Better looking trivia bit (consider 3d text?)
 - [ ] add walls
 - [ ] smoother animations somehow? (this would probably involve limitting frames, which isn't great)
-- [ ] lighting / shadows
+- [ ] better lighting solution (currently the light has to aim at the player)
+- [X] lighting / shadows
 - [x] camera follows player (+ camera controls?)
 - [x] Movement animation (probably with pauses)
 - [x] More traps
