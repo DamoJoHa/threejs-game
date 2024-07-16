@@ -218,11 +218,18 @@ function main() {
         selection == 1 ? "grassA" : "grassB"
 
       const rotation = pickRotation(num)
+      let cube
+      const blockRise = new TWEEN.Tween({y:-0.75})
+        .to({y: 0}, playerSpeed + 400)
+        .onUpdate((opts) => {
+          cube.position.setY(opts.y)
+        })
+
       loader.load( `models/${model}.glb`, function ( gltf ) {
-        newCube = gltf.scene
-        newCube.position.set(targetPosition.x, -0.75, targetPosition.z)
-        newCube.rotateY(rotation)
-        cubes.add(newCube)
+        cube = gltf.scene
+        cube.position.set(targetPosition.x, -0.75, targetPosition.z)
+        cube.rotateY(rotation)
+        cubes.add(cube)
         blockRise.start()
       })
       coordinates.push(coordString)
@@ -456,18 +463,6 @@ function main() {
     .yoyo(true)
 
   floatUp.start()
-
-
-
-  // block appearance
-  const blockRise = new TWEEN.Tween({y:-0.75})
-    // duration must be lower than playerSpeed, or animations may not complete
-    // this could be fixed by moving this into a narrower scope? (see playerMovement)
-    .to({y: 0}, playerSpeed - 50)
-    .onUpdate((opts) => {
-      // newCube is updated every time a cube is created
-      newCube.position.setY(opts.y)
-    })
 
 
 
