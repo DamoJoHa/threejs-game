@@ -13,7 +13,8 @@ Goals/Ideas
 - [ ] Lives/damage system
 - [ ] Better looking trivia bit (consider 3d text?)
 - [ ] add walls
-- [ ] smoother animations somehow?
+- [ ] smoother animations somehow? (this would probably involve limitting frames, which isn't great)
+- [ ] lighting / shadows
 - [x] camera follows player (+ camera controls?)
 - [x] Movement animation (probably with pauses)
 - [x] More traps
