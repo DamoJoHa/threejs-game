@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as TWEEN from "@tweenjs/tween.js"
-import { FontLoader } from 'three/examples/jsm/Addons.js';
+import { AnimationClipCreator, FontLoader } from 'three/examples/jsm/Addons.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -57,7 +57,6 @@ function main() {
   let currentPosition = new THREE.Vector3(0, 0, 0);
   let targetPosition = new THREE.Vector3(0, 0, 0);
   let trapCoordinates;
-  let trappedTextVisible = false;
   let trapped = false;
 
   // tracks answer for trivia
@@ -71,6 +70,7 @@ function main() {
 
   // 3D fonts
   const redTextMat = new THREE.MeshPhysicalMaterial({color: "#ff0000", transparent: true, opacity: 1})
+  const greenTextMat = new THREE.MeshPhysicalMaterial({color: "#00ff00", transparent: true, opacity: 1})
   const fontLoader = new FontLoader();
   let trappedText
   fontLoader.load('fonts/optimer_regular.typeface.json', function (font) {
@@ -87,6 +87,38 @@ function main() {
     trappedText.rotateY(-1.55)
     trappedText.visible = false
     scene.add(trappedText)
+  })
+  let incorrectText
+  fontLoader.load('fonts/optimer_regular.typeface.json', function (font) {
+    const incorrectGeometry = new TextGeometry("Incorrect!", {
+      font: font,
+      size: 20,
+      depth: 2,
+      curveSegments: 12,
+      bevelEnabled: false,
+    })
+    incorrectGeometry.scale(0.1, 0.1, 0.1)
+    incorrectGeometry.center()
+    incorrectText = new THREE.Mesh(incorrectGeometry, redTextMat)
+    incorrectText.rotateY(-1.55)
+    incorrectText.visible = false
+    scene.add(incorrectText)
+  })
+  let correctText
+  fontLoader.load('fonts/optimer_regular.typeface.json', function (font) {
+    const correctGeometry = new TextGeometry("Correct!", {
+      font: font,
+      size: 20,
+      depth: 2,
+      curveSegments: 12,
+      bevelEnabled: false,
+    })
+    correctGeometry.center()
+    correctGeometry.scale(0.1, 0.1, 0.1)
+    correctText = new THREE.Mesh(correctGeometry, greenTextMat)
+    correctText.rotateY(-1.55)
+    correctText.visible = false
+    scene.add(correctText)
   })
 
 
@@ -239,7 +271,7 @@ function main() {
       } else if (onTrap) {
         trapped = true
         cameraFocus()
-        flashTrap()
+        flashText(trappedText)
         correctAnswer = await newQuestion(formLayer)
       }
     }
@@ -375,20 +407,21 @@ function main() {
   }
 
 
-  // trapped message
-  function flashTrap() {
-    trappedText.position.set(targetPosition.x, 3, targetPosition.z)
-    redTextMat.opacity = 1
-    trappedText.visible = true
-    trappedTextVisible = true
-    setTimeout(() => {
-      trappedText.visible = false
-      trappedTextVisible = false
-    }, 3000);
+  function flashText(targetText) {
+    targetText.position.set(targetPosition.x, 3, targetPosition.z)
+    const textRise = new TWEEN.Tween({opacity: 1, y: 3})
+      .onStart(() => targetText.visible = true)
+      .to({opacity: 0, y: 5}, 1000)
+      .onUpdate((params) => {
+        targetText.position.setY(params.y)
+        targetText.material.opacity = params.opacity
+      })
+      .onComplete(() => targetText.visible = false)
+    textRise.start()
   }
 
+
   function showFlag() {
-    // victory flag
     let victoryFlag
     loader.load( `models/flag.glb`, function ( gltf ){
       victoryFlag = gltf.scene
@@ -404,7 +437,7 @@ function main() {
       cubes.add(victoryFlag)
     })
 
-    // TODO victory flag animation with tween
+    // TODO victory flag animation with tween?
   }
 
 
@@ -436,13 +469,6 @@ function main() {
     controls.target.set(player.position.x, 0, player.position.z)
     controls.update()
 
-    // rising "Trapped!" message
-    if (trappedTextVisible) {
-      redTextMat.opacity -= 0.01
-      trappedText.position.y += 0.01
-    }
-
-
 
 
     renderer.render(scene, camera);
@@ -461,24 +487,23 @@ function main() {
     .easing(TWEEN.Easing.Sinusoidal.InOut)
     .repeat(Infinity)
     .yoyo(true)
-
   floatUp.start()
 
 
 
 
-   // handle submission of form
+   // FORM HANDLING
    form.addEventListener("submit", event => {
     event.preventDefault();
     formLayer.style.display = "none"
     const data = new FormData(form)
     const obj = Object.fromEntries(data)
     if (parseInt(obj.answer) === correctAnswer) {
-      console.log("correct")
+      flashText(correctText)
       score += 1
       trapped = false
     } else {
-      console.log("incorrect")
+      flashText(incorrectText)
       // Lose lives?  Reset Score?
       gameReset = true
       trapped = false
