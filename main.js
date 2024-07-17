@@ -147,56 +147,37 @@ function main() {
   scene.add(fill)
 
   // movement logic using wasd input
+
+  const forwardVector = new THREE.Vector3(1, 0, 0)
+  const backVector = new THREE.Vector3(-1, 0, 0)
+  const leftVector = new THREE.Vector3(0, 0, -1)
+  const rightVector = new THREE.Vector3(0, 0, 1)
+
+  function manageKeyDown(keycode) {
+    console.log(keycode)
+    return (keycode == 87 && currentPosition.x < 10) ? forwardVector :
+      (keycode == 65 && currentPosition.z > -10) ? leftVector :
+      (keycode == 68 && currentPosition.z < 10) ? rightVector :
+      (keycode == 83 && currentPosition.x > -10) ? backVector : false
+  }
+
   canvas.addEventListener("keydown", (e) =>{
     if (gameReset) {
       // reset game if game is in reset state
       resetMap()
       return
     } else if (gamePlayState & !trapped) {
-      switch(e.keyCode) {
-        case 87:
-          // console.log("moving forward")
-          moveForwards()
-          break
-        case 65:
-          // console.log("moving left")
-          moveLeft()
-          break
-        case 68:
-          // console.log("moving right")
-          moveRight()
-          break
-        case 83:
-          // console.log("moving back")
-          moveBack()
-          break
+      const motion = manageKeyDown(e.keyCode)
+      if (motion) {
+        targetPosition.add(motion)
+        createCube()
+        movePlayer()
       }
-      createCube()
-      movePlayer()
     }
   })
 
 
-  // Movement functions can be collapes into above code later, maybe
-  function moveForwards() {
-    const forewardsVector = new THREE.Vector3(1, 0, 0)
-    targetPosition.add(forewardsVector)
-  }
 
-  function moveLeft() {
-    const leftVector = new THREE.Vector3(0, 0, -1)
-    targetPosition.add(leftVector)
-  }
-
-  function moveRight() {
-    const rightVector = new THREE.Vector3(0, 0, 1)
-    targetPosition.add(rightVector)
-  }
-
-  function moveBack() {
-    const backVector = new THREE.Vector3(-1, 0 , 0)
-    targetPosition.add(backVector)
-  }
 
   // creates a new position cube based on the position
   async function createCube() {
